@@ -16,17 +16,22 @@ class MLXWhisperEngine:
         self,
         model_name: str = "mlx-community/whisper-small-mlx",
         fallback_language: str = "en",
+        language: str | None = None,
     ) -> None:
         """Initialize MLX Whisper inference engine.
 
         Args:
             model_name: MLX model repository name or path.
             fallback_language: Default language code if detection is ambiguous.
+            language: Optional explicit language code (e.g., 'mr', 'hi', 'en').
         """
         self._model_name = model_name
         self._fallback_language = fallback_language
+        self._language = language
         self._model_loaded = False
-        logger.debug(f"MLXWhisperEngine initialized: model='{model_name}'")
+        logger.debug(
+            f"MLXWhisperEngine initialized: model='{model_name}', language='{language}'"
+        )
 
     def _ensure_model_loaded(self) -> None:
         """Lazy loader verifying mlx_whisper availability."""
@@ -45,13 +50,17 @@ class MLXWhisperEngine:
             ) from exc
 
     def transcribe(
-        self, audio_data: np.ndarray, sample_rate: int = 16000
+        self,
+        audio_data: np.ndarray,
+        sample_rate: int = 16000,
+        language: str | None = None,
     ) -> tuple[str, str, float]:
-        """Transcribe PCM float32 audio array with auto language detection.
+        """Transcribe PCM float32 audio array with auto or explicit language detection.
 
         Args:
             audio_data: 1D float32 NumPy array at 16000Hz.
             sample_rate: Sampling frequency in Hz.
+            language: Explicit language code override (e.g. 'mr', 'hi', 'en').
 
         Returns:
             tuple[str, str, float]: (text, detected_language_code, confidence).
@@ -67,6 +76,11 @@ class MLXWhisperEngine:
         try:
             import mlx_whisper
 
+            target_lang = language or self._language
+            kwargs: dict[str, str] = {}
+            if target_lang and target_lang.lower() != "auto":
+                kwargs["language"] = target_lang.lower()
+
             # Execute MLX Whisper STT with Marathi/Hindi/English initial prompt
             initial_prompt = (
                 "Marathi, Hindi, English meeting conversation. "
@@ -77,6 +91,7 @@ class MLXWhisperEngine:
                 path_or_hf_repo=self._model_name,
                 initial_prompt=initial_prompt,
                 verbose=False,
+                **kwargs,
             )
 
             text = str(result.get("text", "")).strip()

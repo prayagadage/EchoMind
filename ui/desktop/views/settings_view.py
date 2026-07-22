@@ -47,8 +47,18 @@ class SettingsView(QWidget):
         self._audio_device.addItems(
             ["default", "MacBook Air Microphone", "External Mic"]
         )
+        self._speech_lang = QComboBox()
+        self._speech_lang.addItems(
+            [
+                "Auto-Detect (Multilingual)",
+                "Marathi (mr)",
+                "Hindi (hi)",
+                "English (en)",
+            ]
+        )
         self._vad_threshold = QLineEdit("0.002")
         a_form.addRow("Input Device:", self._audio_device)
+        a_form.addRow("Speech Language:", self._speech_lang)
         a_form.addRow("VAD Energy Threshold:", self._vad_threshold)
         tabs.addTab(audio_tab, "Audio")
 
@@ -67,15 +77,15 @@ class SettingsView(QWidget):
         self._top_k = QSpinBox()
         self._top_k.setRange(1, 20)
         self._top_k.setValue(5)
-        s_form.addRow("Vector Search Top-K Hits:", self._top_k)
+        s_form.addRow("Vector Top-K Results:", self._top_k)
         tabs.addTab(search_tab, "Search")
 
         # 4. Appearance Tab
         app_tab = QWidget()
-        app_form = QFormLayout(app_tab)
+        ap_form = QFormLayout(app_tab)
         self._theme_combo = QComboBox()
         self._theme_combo.addItems(["dark", "light", "system"])
-        app_form.addRow("UI Theme Mode:", self._theme_combo)
+        ap_form.addRow("Theme:", self._theme_combo)
         tabs.addTab(app_tab, "Appearance")
 
         # 5. Privacy Tab
@@ -98,6 +108,17 @@ class SettingsView(QWidget):
     def _load_from_settings(self, s: EchoMindUserSettings) -> None:
         self._audio_device.setCurrentText(s.audio.input_device)
         self._vad_threshold.setText(str(s.audio.vad_energy_threshold))
+
+        lang_map = {
+            "auto": "Auto-Detect (Multilingual)",
+            "mr": "Marathi (mr)",
+            "hi": "Hindi (hi)",
+            "en": "English (en)",
+        }
+        self._speech_lang.setCurrentText(
+            lang_map.get(s.audio.speech_language, "Auto-Detect (Multilingual)")
+        )
+
         self._whisper_model.setText(s.ai_model.whisper_model)
         self._llm_model.setText(s.ai_model.llm_model)
         self._top_k.setValue(s.search.top_k)
@@ -107,6 +128,17 @@ class SettingsView(QWidget):
     def _on_save_clicked(self) -> None:
         current = self._vm.settings
         current.audio.input_device = self._audio_device.currentText()
+
+        rev_map = {
+            "Auto-Detect (Multilingual)": "auto",
+            "Marathi (mr)": "mr",
+            "Hindi (hi)": "hi",
+            "English (en)": "en",
+        }
+        current.audio.speech_language = rev_map.get(
+            self._speech_lang.currentText(), "auto"
+        )
+
         current.ai_model.whisper_model = self._whisper_model.text()
         current.ai_model.llm_model = self._llm_model.text()
         current.search.top_k = self._top_k.value()

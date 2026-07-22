@@ -91,8 +91,16 @@ class RecordingService:
                 settings=self._container.settings,
                 event_bus=self._container.event_bus,
             )
+            from modules.stt.whisper_engine import MLXWhisperEngine
+
+            u_settings = self._container.settings_service.settings
+            stt_model = u_settings.ai_model.whisper_model
+            speech_lang = u_settings.audio.speech_language
+
+            engine = MLXWhisperEngine(model_name=stt_model, language=speech_lang)
             self._pipeline = TranscriptionPipeline(
-                event_bus=self._audio_engine.event_bus
+                event_bus=self._audio_engine.event_bus,
+                whisper_engine=engine,
             )
 
             # 3. Subscribe DB transcript persistence listener

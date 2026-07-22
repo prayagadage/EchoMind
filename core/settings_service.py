@@ -18,6 +18,10 @@ class AudioUISettings(BaseModel):
     vad_energy_threshold: float = Field(
         default=0.002, description="VAD RMS energy threshold"
     )
+    speech_language: str = Field(
+        default="auto",
+        description="Primary speech language ('auto', 'mr', 'hi', 'en')",
+    )
 
 
 class AIModelUISettings(BaseModel):

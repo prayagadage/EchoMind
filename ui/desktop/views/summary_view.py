@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QListWidget,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QTextEdit,
@@ -27,6 +28,9 @@ class SummaryView(QWidget):
         self._vm = viewModel
         self._init_ui()
         self._vm.summary_updated.connect(self._on_summary_updated)
+        self._vm.loading_changed.connect(self._on_loading_changed)
+        self._vm.error_occurred.connect(self._on_error_occurred)
+        self._vm.load_summary()
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -37,9 +41,13 @@ class SummaryView(QWidget):
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
         header_layout.addWidget(title)
 
-        gen_btn = QPushButton("Generate Summary")
-        gen_btn.clicked.connect(self._vm.generate_summary)
-        header_layout.addWidget(gen_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        self._gen_btn = QPushButton("Generate Summary")
+        self._gen_btn.setStyleSheet(
+            "background-color: #4F46E5; color: white; font-weight: bold; "
+            "padding: 8px 16px; border-radius: 6px;"
+        )
+        self._gen_btn.clicked.connect(self._vm.generate_summary)
+        header_layout.addWidget(self._gen_btn, alignment=Qt.AlignmentFlag.AlignRight)
         layout.addLayout(header_layout)
 
         # Scroll Area Content
@@ -52,7 +60,7 @@ class SummaryView(QWidget):
         c_layout.addWidget(QLabel("<b>Executive Summary</b>"))
         self._exec_summary_text = QTextEdit()
         self._exec_summary_text.setReadOnly(True)
-        self._exec_summary_text.setMaximumHeight(100)
+        self._exec_summary_text.setMaximumHeight(110)
         c_layout.addWidget(self._exec_summary_text)
 
         # Key Takeaways
@@ -75,6 +83,17 @@ class SummaryView(QWidget):
 
         scroll.setWidget(content_widget)
         layout.addWidget(scroll)
+
+    def _on_loading_changed(self, is_loading: bool) -> None:
+        if is_loading:
+            self._gen_btn.setText("⏳ Generating Summary...")
+            self._gen_btn.setEnabled(False)
+        else:
+            self._gen_btn.setText("Generate Summary")
+            self._gen_btn.setEnabled(True)
+
+    def _on_error_occurred(self, err_msg: str) -> None:
+        QMessageBox.warning(self, "Summary Error", err_msg)
 
     def _on_summary_updated(self, summary: dict) -> None:
         self._exec_summary_text.setText(

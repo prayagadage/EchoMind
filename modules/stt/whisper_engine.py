@@ -132,4 +132,15 @@ class MLXWhisperEngine:
             "bye bye",
             "peace out",
         ]
-        return any(p in lowered for p in phrases)
+        if any(p in lowered for p in phrases):
+            return True
+
+        # 4. Prompt repetition on silence (e.g., "Marathi, Hindi, English meeting...")
+        if (
+            lowered.count("marathi") > 2
+            or lowered.count("hindi") > 2
+            or lowered.count("english meeting") > 2
+        ):
+            return True
+
+        return False

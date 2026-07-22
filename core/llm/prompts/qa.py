@@ -9,7 +9,9 @@ Rules:
 3. Do NOT invent facts or use external knowledge.
 4. If context is insufficient, state:
    "The provided meeting context does not contain information to answer this question."
-5. Maintain a helpful and clear tone."""
+5. Provide ONLY your direct final answer. Do NOT output internal reasoning,
+   thought process, preamble ("Okay, the user is asking..."), or meta-commentary.
+6. Maintain a helpful and clear tone."""
 
 
 def build_qa_user_prompt(

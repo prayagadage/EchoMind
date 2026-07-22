@@ -30,7 +30,7 @@ class ResponseGenerator:
         Returns:
             AssistantResponse: Response object with answer and citations.
         """
-        answer_text = raw_completion.strip()
+        answer_text = ResponseGenerator._clean_thought_preamble(raw_completion)
         matched_citations: list[Citation] = []
 
         if available_citations:
@@ -65,3 +65,35 @@ class ResponseGenerator:
             retrieved_count=len(available_citations),
             model_name=model_name,
         )
+
+    @staticmethod
+    def _clean_thought_preamble(text: str) -> str:
+        """Strip internal reasoning blocks, XML tags, and meta-commentary."""
+        if not text:
+            return ""
+
+        # 1. Remove XML <think>...</think> blocks
+        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+
+        # 2. Filter out paragraphs starting with internal reasoning preambles
+        meta_starters = (
+            "okay, the user is asking",
+            "let me look through",
+            "let me check",
+            "first, looking at",
+            "putting this together",
+            "so the answer should",
+            "let's check the provided context",
+        )
+
+        paragraphs = [p.strip() for p in cleaned.split("\n\n") if p.strip()]
+        filtered = []
+        for p in paragraphs:
+            p_lower = p.lower()
+            if any(p_lower.startswith(starter) for starter in meta_starters):
+                continue
+            filtered.append(p)
+
+        if filtered:
+            return "\n\n".join(filtered)
+        return cleaned

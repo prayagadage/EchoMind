@@ -15,9 +15,13 @@ from modules.storage.db import DatabaseEngine
 from modules.storage.service import TranscriptService
 
 if TYPE_CHECKING:
+    from core.vector.base import VectorStore
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
     from modules.meeting_intelligence.intelligence_service import IntelligenceService
+    from modules.search.embedding_service import EmbeddingService
+    from modules.search.indexer import KnowledgeIndexer
+    from modules.search.search_service import SearchService
     from modules.speaker.speaker_identity_service import SpeakerIdentityService
     from modules.speaker.speaker_merge_service import SpeakerMergeService
     from modules.speaker.speaker_registry import SpeakerRegistry
@@ -46,6 +50,10 @@ class ApplicationContainer:
         self._speaker_service: SpeakerService | None = None
         self._intelligence_service: IntelligenceService | None = None
         self._summary_service: SummaryService | None = None
+        self._vector_store: VectorStore | None = None
+        self._embedding_service: EmbeddingService | None = None
+        self._indexer: KnowledgeIndexer | None = None
+        self._search_service: SearchService | None = None
         self._initialized: bool = False
 
     @property
@@ -154,6 +162,53 @@ class ApplicationContainer:
                 event_bus=self.event_bus,
             )
         return self._summary_service
+
+    @property
+    def vector_store(self) -> "VectorStore":
+        """Access VectorStore instance."""
+        if self._vector_store is None:
+            from core.vector.sqlite_provider import SQLiteVectorStore
+
+            self._vector_store = SQLiteVectorStore()
+        return self._vector_store
+
+    @property
+    def embedding_service(self) -> "EmbeddingService":
+        """Access EmbeddingService instance."""
+        if self._embedding_service is None:
+            from modules.search.embedding_service import (
+                LocalSemanticEmbeddingProvider,
+            )
+
+            self._embedding_service = LocalSemanticEmbeddingProvider()
+        return self._embedding_service
+
+    @property
+    def indexer(self) -> "KnowledgeIndexer":
+        """Access KnowledgeIndexer instance."""
+        if self._indexer is None:
+            from modules.search.indexer import KnowledgeIndexer
+
+            self._indexer = KnowledgeIndexer(
+                embedding_service=self.embedding_service,
+                vector_store=self.vector_store,
+                db_engine=self.db_engine,
+                event_bus=self.event_bus,
+            )
+        return self._indexer
+
+    @property
+    def search_service(self) -> "SearchService":
+        """Access SearchService instance."""
+        if self._search_service is None:
+            from modules.search.search_service import SearchService
+
+            self._search_service = SearchService(
+                embedding_service=self.embedding_service,
+                vector_store=self.vector_store,
+                db_engine=self.db_engine,
+            )
+        return self._search_service
 
     @property
     def speaker_registry(self) -> "SpeakerRegistry":

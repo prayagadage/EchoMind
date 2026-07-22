@@ -89,3 +89,9 @@ class IntelligenceError(EchoMindBaseException):
     """Raised when meeting intelligence extraction fails."""
 
     pass
+
+
+class SearchError(EchoMindBaseException):
+    """Raised when semantic search indexing or vector retrieval fails."""
+
+    pass

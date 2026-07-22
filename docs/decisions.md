@@ -142,3 +142,17 @@ This document records key architectural and technology choices made for the Echo
   3. **Structured JSON Output**: Validating response payloads via Pydantic `SummaryResponseSchema` guarantees robust structural separation of Executive Summary, Bullet Points, and Key Takeaways.
 - **Consequences**: Summary records are stored in `meeting_summaries` table with model version tracking. `summary_service` is accessible via `ApplicationContainer`.
 
+---
+
+## ADR 15: Vector Store Abstraction & Local Semantic Search Engine
+
+- **Status**: Accepted
+- **Context**: EchoMind requires an offline local semantic search and knowledge base across meeting transcripts, summaries, and Phase 7 structured intelligence (Action Items, Decisions, Risks, Questions, Deadlines). To keep search independent of underlying database implementations and allow future experimentation, vector storage must be abstracted behind a provider interface.
+- **Decision**: Introduce a `core/vector/` package with `VectorStore` Protocol (`base.py`) and `SQLiteVectorStore` provider (`sqlite_provider.py`) using SQLite storage and NumPy dot-product Cosine Similarity. Implement `EmbeddingService` in `modules/search/embedding_service.py` with `LocalSemanticEmbeddingProvider` generating 384-dimensional normalized $L_2$ vectors. Build `KnowledgeIndexer` and `SearchService` supporting incremental indexing with content hash deduplication, top-k similarity ranking, meeting filters, and metadata enrichment (meeting titles, speaker display names, timestamps).
+- **Rationale**:
+  1. **Vector Store Interface**: Abstracting vector storage behind `VectorStore` Protocol prevents vendor/driver lock-in and allows swapping SQLite for alternative vector backends in the future without changing search logic.
+  2. **Dedicated Local Embedding Model**: Generative decoders (Qwen 3 4B) are unsuitable for batch vector embedding generation. A 384-dim normalized embedding generator provides fast (<5ms per batch) and zero-network vector representations.
+  3. **Multilingual Translation Integration**: Transcripts in Marathi and Hindi use their translated English text for embedding vector generation, enabling cross-lingual semantic discovery in natural English queries.
+- **Consequences**: `vector_embeddings` table and SQLite vector store maintain indexed vectors. `search_service` and `indexer` are wired via `ApplicationContainer`.
+
+

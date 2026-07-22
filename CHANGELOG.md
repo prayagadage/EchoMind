@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2026-07-22 (Phase 9: Local Semantic Search & Knowledge Base)
+
+### Added
+- `core/vector/` — Vector Store abstraction package (`VectorStore` Protocol + `SQLiteVectorStore` provider)
+- `modules/search/` — Local Semantic Search & Knowledge Base package
+- `EmbeddingService` Protocol & `LocalSemanticEmbeddingProvider` generating 384-dimensional normalized $L_2$ vectors
+- `KnowledgeIndexer` supporting incremental indexing of transcripts (using English translations), summaries, and Phase 7 intelligence
+- `SearchService` providing semantic query vector search, cosine similarity ranking, meeting filters, and metadata enrichment
+- `VectorEmbeddingModel` ORM entity and `VectorRepository` database persistence
+- `IndexUpdatedEvent` published on EventBus upon index completion
+- 7 unit & integration tests in `tests/test_search.py`
+- Executable demonstration script `scripts/demo_search.py`
+- ADR-015: Vector Store Abstraction & Local Semantic Search Engine
+
+### Changed
+- `app/container.py` — Exposed `vector_store`, `embedding_service`, `indexer`, and `search_service`
+- `core/exceptions.py` — Added `SearchError`
+
+---
+
 ## [0.8.0] - 2026-07-22 (Phase 8: Meeting Summarization Engine)
 
 ### Added

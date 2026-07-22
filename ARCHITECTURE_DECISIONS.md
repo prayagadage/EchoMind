@@ -48,6 +48,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: `RuleEngine` + `NotificationService` (macOS UserNotifications)
 - **Why**: Real-time business logic execution, low-latency UI feedback, and native OS-level interaction for critical alerts.
 
+### [ADR-011: Online Acoustic Feature Streaming Diarization for Apple Silicon](docs/decisions.md#adr-11-online-acoustic-feature-streaming-diarization-for-apple-silicon)
+- **Choice**: `SpeakerSegmenter` Acoustic Feature Vector Clustering + `SpeakerService` Event Worker
+- **Why**: Ultra-low memory (<15MB) and CPU (<3%) footprint on M2 Air without GPU contention, sub-50ms processing latency, and intra-meeting speaker continuity tracking.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

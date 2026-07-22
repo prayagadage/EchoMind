@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.1] - 2026-07-22 (Phase 6A: Streaming Speaker Segmentation System)
+
+### Added
+- **SpeakerSegmenter Engine (`modules/speaker/speaker_segmenter.py`)**: Real-time acoustic spectral feature vector extraction and online centroid clustering engine detecting speaker boundaries and tracking intra-meeting speaker continuity.
+- **SpeakerService Event Worker (`modules/speaker/speaker_service.py`)**: Independent worker subscribing to `AudioChunk` and `TranscriptEvent`, managing temporary speaker labels (`Speaker A`, `Speaker B`), linking `TranscriptModel.speaker_id` in SQLite, and publishing `SpeakerEvents`.
+- **Speaker Events Dataclasses (`modules/speaker/speaker_events.py`)**: `SpeakerStartedEvent`, `SpeakerEndedEvent`, `SpeakerChangedEvent`, and `SpeakerAssignedEvent` payloads.
+- **Speaker Database Persistence (`modules/storage/models.py` & `repositories.py`)**: `SpeakerModel` ORM entity (`speakers` table) and `SpeakerRepository` for SQLite persistence.
+- **Unit Tests & Demo (`tests/test_speaker.py` & `scripts/demo_speaker.py`)**: Comprehensive unit test suite and live interactive demonstration script.
+
 ## [0.6.0] - 2026-07-22 (Phase 5: Real-Time Intelligence & Alert System)
 
 ### Added

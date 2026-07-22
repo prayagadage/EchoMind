@@ -3,6 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Optional
 
 from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -53,6 +54,41 @@ class MeetingModel(Base):
         )
 
 
+class SpeakerModel(Base):
+    """SQLAlchemy model representing an active meeting speaker entity."""
+
+    __tablename__ = "speakers"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    meeting_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False
+    )
+    temporary_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+    last_seen: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+
+    __table_args__ = (
+        Index("idx_speakers_meeting", "meeting_id"),
+        Index("idx_speakers_temp_name", "temporary_name"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<SpeakerModel(id='{self.id}', meeting_id='{self.meeting_id}', "
+            f"name='{self.temporary_name}')>"
+        )
+
+
 class TranscriptModel(Base):
     """SQLAlchemy model representing a transcribed speech segment."""
 
@@ -63,6 +99,9 @@ class TranscriptModel(Base):
     )
     meeting_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False
+    )
+    speaker_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("speakers.id", ondelete="SET NULL"), nullable=True
     )
     sequence_number: Mapped[int] = mapped_column(Integer, nullable=False)
     timestamp: Mapped[float] = mapped_column(Float, nullable=False)
@@ -75,21 +114,23 @@ class TranscriptModel(Base):
     speaker_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
     embedding_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
-    # Back-reference relationship
+    # Relationships
     meeting: Mapped["MeetingModel"] = relationship(
         "MeetingModel", back_populates="transcripts"
     )
+    speaker: Mapped[Optional["SpeakerModel"]] = relationship("SpeakerModel")
 
     __table_args__ = (
         Index("idx_transcripts_meeting_seq", "meeting_id", "sequence_number"),
         Index("idx_transcripts_language", "language"),
+        Index("idx_transcripts_speaker", "speaker_id"),
     )
 
     def __repr__(self) -> str:
         snippet = self.original_text[:20]
         return (
-            f"<TranscriptModel(id='{self.id}', meeting_id='{self.meeting_id}', "
-            f"seq={self.sequence_number}, lang='{self.language}', text='{snippet}')>"
+            f"<TranscriptModel(id='{self.id}', seq={self.sequence_number}, "
+            f"speaker_id='{self.speaker_id}', text='{snippet}')>"
         )
 
 

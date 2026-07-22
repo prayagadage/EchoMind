@@ -61,20 +61,20 @@ EchoMind is a local-first, offline AI meeting assistant engineered specifically 
 |  +------------------------------+-------------------------------------+  |
 |  |               INDEPENDENT WORKER EVENT ROUTER                      |  |
 |  |                                                                    |  |
-|  |                        TranscriptEvent                             |  |
+|  |                 AudioChunk / TranscriptEvent                       |  |
 |  |                               │                                    |  |
 |  |        ┌──────────────────────┼──────────────────────┐             |  |
 |  |        ▼                      ▼                      ▼             |  |
-|  | Translation Worker    AlertManager Worker    Future Diarization    |  |
-|  | (modules/translation) (modules/intelligence)      (Phase 6)       |  |
-|  |        │                      │                                    |  |
-|  |        ▼                      v                                    |  |
-|  | TranslationEvent         AlertEvent                                |  |
-|  |        │                      │                                    |  |
-|  | ┌──────┼───────────┐   ┌──────┼──────────────────────┐             |  |
-|  | ▼      ▼           ▼   ▼      ▼                      ▼             |  |
-|  | UI  Summary     Database macOS Banner        System Sound          |  |
-|  |     Engine    (AlertModel) (NotificationService) (afplay/Glass)    |  |
+|  | Translation Worker    AlertManager Worker    SpeakerService Worker |  |
+|  | (modules/translation) (modules/intelligence)      (modules/speaker)    |  |
+|  |        │                      │                      │             |  |
+|  |        ▼                      v                      v             |  |
+|  | TranslationEvent         AlertEvent            SpeakerEvents       |  |
+|  |        │                      │                      │             |  |
+|  | ┌──────┼───────────┐   ┌──────┼───────────┐   ┌──────┼───────────┐ |  |
+|  | ▼      ▼           ▼   ▼      ▼           ▼   ▼      ▼           ▼ |  |
+|  | UI  Summary     Database macOS  System    Database UI  Transcript  |  |
+|  |     Engine    (AlertModel)Banner Sound  (SpeakerModel) Linker      |  |
 |  +--------------------------------------------------------------------+  |
 +------------------------------------+-------------------------------------+
                                      |

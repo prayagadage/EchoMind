@@ -17,6 +17,7 @@ from modules.storage.service import TranscriptService
 if TYPE_CHECKING:
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
+    from modules.speaker.speaker_service import SpeakerService
     from modules.translation.service import TranslationService
 
 
@@ -36,6 +37,7 @@ class ApplicationContainer:
         self._translation_service: TranslationService | None = None
         self._notification_service: NotificationService | None = None
         self._alert_manager: AlertManager | None = None
+        self._speaker_service: SpeakerService | None = None
         self._initialized: bool = False
 
     @property
@@ -102,6 +104,18 @@ class ApplicationContainer:
                 db_engine=self.db_engine,
             )
         return self._alert_manager
+
+    @property
+    def speaker_service(self) -> "SpeakerService":
+        """Access SpeakerService instance."""
+        if self._speaker_service is None:
+            from modules.speaker.speaker_service import SpeakerService
+
+            self._speaker_service = SpeakerService(
+                event_bus=self.event_bus,
+                db_engine=self.db_engine,
+            )
+        return self._speaker_service
 
     @property
     def is_initialized(self) -> bool:

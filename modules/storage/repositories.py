@@ -9,6 +9,7 @@ from modules.storage.models import (
     AlertModel,
     MeetingModel,
     MeetingStatus,
+    SpeakerModel,
     TranscriptModel,
     TranslationModel,
 )
@@ -151,6 +152,23 @@ class TranscriptRepository:
         stmt = stmt.order_by(TranscriptModel.timestamp)
         return list(session.scalars(stmt).all())
 
+    @staticmethod
+    def update_speaker_id(
+        session: Session, transcript_id: str, speaker_id: str
+    ) -> None:
+        """Associate a transcript record with a specific speaker ID.
+
+        Args:
+            session: Active database session.
+            transcript_id: Target transcript UUID string.
+            speaker_id: Target speaker UUID string.
+        """
+        stmt = select(TranscriptModel).where(TranscriptModel.id == transcript_id)
+        transcript = session.scalar(stmt)
+        if transcript:
+            transcript.speaker_id = speaker_id
+            session.flush()
+
 
 class TranslationRepository:
     """Repository managing Translation persistence and retrieval operations."""
@@ -224,3 +242,72 @@ class AlertRepository:
             .order_by(AlertModel.created_at)
         )
         return list(session.scalars(stmt).all())
+
+
+class SpeakerRepository:
+    """Repository managing Speaker entity persistence and retrieval operations."""
+
+    @staticmethod
+    def create(session: Session, speaker: SpeakerModel) -> SpeakerModel:
+        """Persist a new speaker record.
+
+        Args:
+            session: Active SQLAlchemy database session.
+            speaker: SpeakerModel instance to save.
+
+        Returns:
+            SpeakerModel: Saved speaker entity.
+        """
+        session.add(speaker)
+        session.flush()
+        return speaker
+
+    @staticmethod
+    def get_by_id(session: Session, speaker_id: str) -> SpeakerModel | None:
+        """Retrieve speaker by ID.
+
+        Args:
+            session: Active database session.
+            speaker_id: Target speaker UUID string.
+
+        Returns:
+            SpeakerModel | None: Speaker entity or None.
+        """
+        stmt = select(SpeakerModel).where(SpeakerModel.id == speaker_id)
+        return session.scalar(stmt)
+
+    @staticmethod
+    def get_by_meeting(session: Session, meeting_id: str) -> list[SpeakerModel]:
+        """Retrieve all speakers associated with a meeting session.
+
+        Args:
+            session: Active database session.
+            meeting_id: Target meeting UUID string.
+
+        Returns:
+            list[SpeakerModel]: List of speakers in the meeting.
+        """
+        stmt = (
+            select(SpeakerModel)
+            .where(SpeakerModel.meeting_id == meeting_id)
+            .order_by(SpeakerModel.created_at)
+        )
+        return list(session.scalars(stmt).all())
+
+    @staticmethod
+    def update_last_seen(
+        session: Session, speaker_id: str, last_seen: datetime
+    ) -> None:
+        """Update last_seen timestamp for a target speaker.
+
+        Args:
+            session: Active database session.
+            speaker_id: Target speaker UUID string.
+            last_seen: New UTC timestamp.
+        """
+        speaker = session.scalar(
+            select(SpeakerModel).where(SpeakerModel.id == speaker_id)
+        )
+        if speaker:
+            speaker.last_seen = last_seen
+            session.flush()

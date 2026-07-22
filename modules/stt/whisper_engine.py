@@ -77,6 +77,11 @@ class MLXWhisperEngine:
             text = str(result.get("text", "")).strip()
             detected_lang = str(result.get("language", self._fallback_language))
 
+            # Filter out known Whisper hallucinations on quiet or noisy audio
+            if self._is_hallucination(text):
+                logger.debug(f"Filtered Whisper hallucination: '{text}'")
+                return "", detected_lang.lower(), 0.0
+
             # Normalize language code (e.g. 'mr', 'hi', 'en')
             detected_lang_code = detected_lang.lower()
 
@@ -85,10 +90,41 @@ class MLXWhisperEngine:
                 f"[{detected_lang_code.upper()}]: '{text}'"
             )
             return text, detected_lang_code, 0.95
-
         except Exception as exc:
             logger.error(f"MLX Whisper inference error: {exc}")
             raise STTInferenceError(
                 message=f"Failed to transcribe audio segment: {exc}",
                 details={"error": str(exc)},
             ) from exc
+
+    def _is_hallucination(self, text: str) -> bool:
+        """Check if transcribed text is a known Whisper hallucination pattern."""
+        if not text:
+            return True
+
+        clean = text.strip()
+
+        # 1. Repeated digits/punctuation (e.g., "1,2,3,4,5,5,5,5,5,5,5...")
+        import re
+
+        if re.match(r"^[\d\s,.-]+$", clean) and len(clean) > 8:
+            return True
+
+        # 2. Excessive single digit repetitions
+        digits = re.findall(r"\b\d+\b", clean)
+        if len(digits) > 5 and (len(set(digits)) <= 2 or digits.count("5") > 4):
+            return True
+
+        # 3. Known subtitle/closing hallucination phrases
+        lowered = clean.lower()
+        phrases = [
+            "subtitles by",
+            "thanks for watching",
+            "thank you for watching",
+            "subscribe to my channel",
+            "amara.org",
+            "you for watching",
+            "bye bye",
+            "peace out",
+        ]
+        return any(p in lowered for p in phrases)

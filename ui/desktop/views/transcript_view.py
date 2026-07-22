@@ -62,6 +62,15 @@ class TranscriptView(QWidget):
         ts = t.get("timestamp", 0.0)
         text = t.get("text", "")
 
-        display_text = f"[{ts:.1f}s] [{lang}] {spk}: {text}"
+        if ts > 1_000_000_000:
+            from datetime import datetime
+
+            time_str = datetime.fromtimestamp(ts).strftime("%H:%M:%S")
+        else:
+            mins = int(ts // 60)
+            secs = int(ts % 60)
+            time_str = f"{mins:02d}:{secs:02d}"
+
+        display_text = f"[{time_str}] [{lang}] {spk}: {text}"
         item = QListWidgetItem(display_text)
         self._list_widget.addItem(item)

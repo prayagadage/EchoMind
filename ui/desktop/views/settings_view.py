@@ -55,7 +55,7 @@ class SettingsView(QWidget):
         # 2. AI Model Tab
         ai_tab = QWidget()
         ai_form = QFormLayout(ai_tab)
-        self._whisper_model = QLineEdit("mlx-community/whisper-base-mlx")
+        self._whisper_model = QLineEdit("mlx-community/whisper-small-mlx")
         self._llm_model = QLineEdit("mlx-community/Qwen3-4B-4bit")
         ai_form.addRow("Whisper STT Model:", self._whisper_model)
         ai_form.addRow("LLM Provider Model:", self._llm_model)

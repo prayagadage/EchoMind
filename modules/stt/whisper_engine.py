@@ -14,7 +14,7 @@ class MLXWhisperEngine:
 
     def __init__(
         self,
-        model_name: str = "mlx-community/whisper-base-mlx",
+        model_name: str = "mlx-community/whisper-small-mlx",
         fallback_language: str = "en",
     ) -> None:
         """Initialize MLX Whisper inference engine.
@@ -67,10 +67,15 @@ class MLXWhisperEngine:
         try:
             import mlx_whisper
 
-            # Execute MLX Whisper local transcription
+            # Execute MLX Whisper STT with Marathi/Hindi/English initial prompt
+            initial_prompt = (
+                "Marathi, Hindi, English meeting conversation. "
+                "मराठी, हिंदी, आणि इंग्रजी संभाषण."
+            )
             result = mlx_whisper.transcribe(
                 data,
                 path_or_hf_repo=self._model_name,
+                initial_prompt=initial_prompt,
                 verbose=False,
             )
 

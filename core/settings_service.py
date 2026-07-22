@@ -24,7 +24,7 @@ class AIModelUISettings(BaseModel):
     """AI Model parameters for Whisper and Qwen."""
 
     whisper_model: str = Field(
-        default="mlx-community/whisper-base-mlx", description="Whisper model ID"
+        default="mlx-community/whisper-small-mlx", description="Whisper model ID"
     )
     llm_model: str = Field(
         default="mlx-community/Qwen3-4B-4bit", description="LLM provider model ID"

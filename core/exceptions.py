@@ -83,3 +83,9 @@ class SummarizationError(EchoMindBaseException):
     """Raised when live or final meeting summary generation fails."""
 
     pass
+
+
+class IntelligenceError(EchoMindBaseException):
+    """Raised when meeting intelligence extraction fails."""
+
+    pass

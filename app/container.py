@@ -17,6 +17,7 @@ from modules.storage.service import TranscriptService
 if TYPE_CHECKING:
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
+    from modules.meeting_intelligence.intelligence_service import IntelligenceService
     from modules.speaker.speaker_identity_service import SpeakerIdentityService
     from modules.speaker.speaker_merge_service import SpeakerMergeService
     from modules.speaker.speaker_registry import SpeakerRegistry
@@ -42,6 +43,7 @@ class ApplicationContainer:
         self._notification_service: NotificationService | None = None
         self._alert_manager: AlertManager | None = None
         self._speaker_service: SpeakerService | None = None
+        self._intelligence_service: IntelligenceService | None = None
         self._initialized: bool = False
 
     @property
@@ -120,6 +122,22 @@ class ApplicationContainer:
                 db_engine=self.db_engine,
             )
         return self._speaker_service
+
+    @property
+    def intelligence_service(self) -> "IntelligenceService":
+        """Access IntelligenceService instance."""
+        if self._intelligence_service is None:
+            from core.llm.mlx_provider import QwenMLXProvider
+            from modules.meeting_intelligence.intelligence_service import (
+                IntelligenceService,
+            )
+
+            self._intelligence_service = IntelligenceService(
+                llm=QwenMLXProvider(),
+                db_engine=self.db_engine,
+                event_bus=self.event_bus,
+            )
+        return self._intelligence_service
 
     @property
     def speaker_registry(self) -> "SpeakerRegistry":

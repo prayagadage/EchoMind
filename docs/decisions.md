@@ -114,3 +114,17 @@ This document records key architectural and technology choices made for the Echo
   2. **Safe Speaker Merging**: Merging `Speaker C` into `Speaker A` performs an atomic foreign key update (`UPDATE transcripts SET speaker_id = dest_id WHERE speaker_id = target_id`), merges `last_seen` timestamps, deletes the target speaker record, and publishes `SpeakerMergedEvent`.
   3. **Preparation for Future Voice Recognition**: Storing persistent `speaker_id` foreign keys creates an ideal foundation for Phase 7 (Voice Profiles & Cross-Meeting Biometric Recognition). Future voice enrollment services can associate voice embeddings (`embedding_id`) directly to existing `speakers.id` entities without modifying transcript storage schemas.
 - **Consequences**: Downstream UI components consume `SpeakerTranscriptProjection` objects, and speaker statistics/timelines are generated dynamically on demand.
+
+---
+
+## ADR 13: LLM Provider Abstraction & Meeting Intelligence Engine
+
+- **Status**: Accepted
+- **Context**: EchoMind requires structured intelligence extraction (action items, decisions, deadlines, questions, risks, follow-ups) from meeting transcripts using a local LLM. The system must remain offline-capable and backend-agnostic.
+- **Decision**: Introduce a `core/llm/` package with a `LLMProvider` Protocol and `QwenMLXProvider` implementation using `mlx-lm` with `mlx-community/Qwen3-4B-4bit`. Implement `generate_json()` as a protocol-level utility that handles JSON extraction from markdown fences and Pydantic schema validation. Build `IntelligenceService` with dual-mode extraction: incremental (configurable window during live meetings) and final reconciliation (full-context re-extraction at meeting end). Deduplicate via `content_hash` unique constraints.
+- **Rationale**:
+  1. **Protocol-based DI**: Future providers (Ollama, OpenAI) implement the same `LLMProvider` protocol without touching intelligence code.
+  2. **Structured extraction before summarization**: Discrete items preserve granular data that summaries would discard. Future summarization consumes extracted items as higher-quality inputs.
+  3. **Incremental + final**: Real-time extraction gives users immediate visibility into action items during a meeting. Final reconciliation with full context merges duplicates and refines quality.
+  4. **Content hash dedup**: SHA-256 hash on `(item_type, content)` prevents duplicate persistence across incremental and final passes.
+- **Consequences**: `mlx-lm>=0.19.0` added as a dependency. `intelligence_items` table stores all extracted items with `is_final` flag distinguishing incremental from reconciled items.

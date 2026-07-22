@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 2026-07-22 (Phase 7: Meeting Intelligence Engine)
+
+### Added
+- `core/llm/` — LLM provider abstraction (`LLMProvider` Protocol + `generate_json()` utility)
+- `core/llm/mlx_provider.py` — `QwenMLXProvider` using `mlx-community/Qwen3-4B-4bit` via `mlx-lm`
+- `modules/meeting_intelligence/` — Full intelligence extraction module
+- `IntelligenceService` with dual-mode: incremental (live meeting) + final reconciliation
+- `PromptBuilder` assembling timestamped speaker-attributed transcript context
+- `ResponseParser` with Pydantic JSON validation and markdown fence extraction
+- `IntelligenceRepository` with content hash deduplication
+- `IntelligenceItemModel` ORM (action items, decisions, deadlines, questions, risks, follow-ups)
+- `IntelligenceExtractedEvent` published on EventBus after extraction
+- 25 new tests covering parser, repository, service pipeline, dedup, and edge cases
+- `scripts/demo_meeting_intelligence.py` end-to-end demonstration
+- ADR-013: LLM Provider Abstraction & Meeting Intelligence Engine
+
+### Changed
+- `pyproject.toml` — Added `mlx-lm>=0.19.0` dependency
+- `app/container.py` — Wired `intelligence_service` with `QwenMLXProvider` DI
+- `core/exceptions.py` — Added `IntelligenceError`
+
+---
+
 ## [0.6.2] - 2026-07-22 (Phase 6B: Speaker Identity Management System)
 
 ### Added

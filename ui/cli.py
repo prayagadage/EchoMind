@@ -5,6 +5,8 @@ import sys
 
 from app.container import ApplicationContainer
 from loguru import logger
+from modules.stt.transcript_event import TranscriptEvent
+from modules.stt.transcript_formatter import TranscriptFormatter
 
 
 def parse_args(args: list[str] | None = None) -> argparse.Namespace:
@@ -28,6 +30,11 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         "--version",
         action="store_true",
         help="Print version information and exit",
+    )
+    parser.add_argument(
+        "--stt",
+        action="store_true",
+        help="Run real-time streaming speech recognition listener",
     )
     return parser.parse_args(args)
 
@@ -56,6 +63,37 @@ def run_cli(args: list[str] | None = None) -> int:
 
     container.initialize()
     logger.info("EchoMind CLI runner initialized successfully.")
+
+    if parsed.stt:
+        from modules.audio.engine import AudioEngine
+        from modules.stt.transcription_pipeline import TranscriptionPipeline
+
+        logger.info("Starting EchoMind Real-Time Speech Recognition...")
+
+        event_bus = container.event_bus if hasattr(container, "event_bus") else None
+        audio_engine = AudioEngine(settings=container.settings, event_bus=event_bus)
+        pipeline = TranscriptionPipeline(event_bus=audio_engine.event_bus)
+
+        def cli_transcript_listener(event: TranscriptEvent) -> None:
+            output = TranscriptFormatter.format_console(event)
+            logger.info(f"TRANSCRIPT >> {output}")
+
+        audio_engine.event_bus.subscribe(TranscriptEvent, cli_transcript_listener)
+
+        pipeline.start()
+        audio_engine.start()
+
+        logger.info("Listening... Press Ctrl+C to stop.")
+        try:
+            import time
+
+            while True:
+                time.sleep(1.0)
+        except KeyboardInterrupt:
+            logger.info("Stopping speech recognition runner...")
+            audio_engine.stop()
+            pipeline.stop()
+
     container.shutdown()
     return 0
 

@@ -61,3 +61,13 @@ This document records key architectural and technology choices made for the Echo
 - **Decision**: Use `sounddevice` for PortAudio C-level callbacks, pre-allocated NumPy `float32` circular ring buffers (`AudioBuffer`), and a decoupled `EventBus`.
 - **Rationale**: CoreAudio integration via `sounddevice` delivers frame latency below 10 ms. In-memory pre-allocated NumPy arrays eliminate garbage collection pauses and file system persistence. The `EventBus` ensures downstream ML models (Whisper, Keyword Scanner) subscribe asynchronously without coupling to the audio engine.
 - **Consequences**: Microphone audio must be accessed via subscriber events or ring buffer slices; no disk WAV files exist.
+
+---
+
+## ADR 7: Local Multilingual STT via `mlx-whisper` and Silero VAD
+
+- **Status**: Accepted
+- **Context**: Real-time speech-to-text on Apple Silicon must run strictly offline, support multilingual conversations (Marathi, Hindi, English), filter out background silence, and leverage hardware acceleration (Metal / Neural Engine).
+- **Decision**: Integrate `mlx-whisper` for local inference and `VoiceActivityDetector` (Silero VAD thresholds) for active speech segmentation.
+- **Rationale**: `mlx-whisper` is native to Apple Silicon MLX framework, utilizing Metal and ANE for low-power, high-throughput inference. Voice Activity Detection filters silent chunks before invoking Whisper, conserving battery and GPU compute. Decoupled `TranscriptEvent`s are published onto the `EventBus` for presentation and future Phase 3 translation subscribers.
+- **Consequences**: Whisper models run on local GPU/ANE; no cloud API calls or external service calls are made.

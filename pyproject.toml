@@ -21,6 +21,7 @@ dependencies = [
     "loguru>=0.7.2",
     "sounddevice>=0.4.6",
     "numpy>=1.26.0",
+    "mlx-whisper>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -91,6 +92,10 @@ disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
 module = "sounddevice.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "mlx_whisper.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

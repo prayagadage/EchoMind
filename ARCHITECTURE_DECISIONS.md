@@ -32,6 +32,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: `sounddevice` + NumPy Ring Buffer + `EventBus`
 - **Why**: Low-latency CoreAudio callbacks (<10 ms), zero WAV disk writes, and decoupled subscriber streaming for future ML modules.
 
+### [ADR-007: Local Multilingual STT via `mlx-whisper` and Silero VAD](docs/decisions.md#adr-7-local-multilingual-stt-via-mlx-whisper-and-silero-vad)
+- **Choice**: `mlx-whisper` + `VoiceActivityDetector` + `TranscriptEvent`
+- **Why**: Apple Silicon Metal/ANE hardware acceleration, automatic Marathi/Hindi/English detection, silence filtering, and decoupled event streaming.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

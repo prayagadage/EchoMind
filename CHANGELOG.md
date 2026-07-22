@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-07-22 (Phase 2: Real-Time Multilingual Speech Recognition)
+
+### Added
+- **MLX Whisper Engine**: Implemented `MLXWhisperEngine` (`modules/stt/whisper_engine.py`) leveraging Apple Silicon Metal/ANE hardware acceleration for offline STT and automatic language detection (Marathi, Hindi, English).
+- **Silence & Speech Filtering**: Implemented `VoiceActivityDetector` (`modules/stt/vad.py`) evaluating energy and VAD thresholds to filter out silent pauses and ambient noise.
+- **Transcript Event Model**: Created immutable `TranscriptEvent` data model (`modules/stt/transcript_event.py`) encapsulating text, language codes (`mr`, `hi`, `en`), timestamps, confidence scores, and sequence numbers.
+- **Streaming STT Pipeline**: Implemented `TranscriptionPipeline` (`modules/stt/transcription_pipeline.py`) subscribing to `AudioChunk` events from Phase 1 `EventBus`, accumulating active speech frames, running Whisper STT, and publishing `TranscriptEvent` payloads.
+- **Transcript Formatter**: Built `TranscriptFormatter` (`modules/stt/transcript_formatter.py`) for clean console timestamping, language tag colorization, and JSON rendering.
+- **CLI Live STT Flag**: Updated `ui/cli.py` to support `--stt` CLI flag for live interactive speech recognition.
+- **Demonstration & Test Suite**: Added `scripts/demo_stt.py` and comprehensive unit test suite (`tests/test_stt.py`).
+
+---
+
 ## [0.2.0] - 2026-07-22 (Phase 1: Local Audio Capture Engine)
 
 ### Added

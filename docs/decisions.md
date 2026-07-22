@@ -155,4 +155,19 @@ This document records key architectural and technology choices made for the Echo
   3. **Multilingual Translation Integration**: Transcripts in Marathi and Hindi use their translated English text for embedding vector generation, enabling cross-lingual semantic discovery in natural English queries.
 - **Consequences**: `vector_embeddings` table and SQLite vector store maintain indexed vectors. `search_service` and `indexer` are wired via `ApplicationContainer`.
 
+---
+
+## ADR 16: AI Meeting Assistant & Conversational RAG Engine
+
+- **Status**: Accepted
+- **Context**: EchoMind requires an AI Meeting Assistant capable of answering natural-language questions about past meetings using Retrieval-Augmented Generation (RAG). Answers must be strictly grounded in underlying meeting records, support multi-turn conversation memory, and provide source citations without LLM hallucination.
+- **Decision**: Architect the `modules/assistant/` package with `QueryParser`, `RetrievalService` (wrapping Phase 9 `SearchService`), `ContextBuilder` (formatting `[Ref N]` context blocks), `AssistantPromptBuilder` (integrating system prompt from `core/llm/prompts/qa.py`), `ConversationMemory` (maintaining multi-turn dialogue history), `ResponseGenerator` (parsing answers and mapping `[Ref N]` tags to `Citation` objects), and `AssistantService` orchestrator.
+- **Rationale**:
+  1. **Strict RAG Grounding**: Querying `SearchService` for semantic vector hits *before* LLM synthesis transforms speculative text generation into grounded context reading, preventing hallucinations.
+  2. **Multi-Turn Dialogue Memory**: `ConversationMemory` maintains a thread-safe sliding window buffer per session ID, permitting follow-up questions to retain context across conversation turns.
+  3. **Source Attribution & Citations**: `ContextBuilder` tags every retrieved snippet with reference markers (`[Ref 1]`, `[Ref 2]`), allowing `ResponseGenerator` to map claims back to structured `Citation` objects (meeting title, speaker display name, timestamp, entity type).
+  4. **Anti-Hallucination Fallback**: If vector retrieval returns zero hits (or hits below confidence threshold), `AssistantService` immediately returns a factual fallback response without making an ungrounded LLM call.
+- **Consequences**: `assistant_service` is accessible via `ApplicationContainer`. Conversational turn memory is maintained in-memory per session.
+
+
 

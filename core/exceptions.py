@@ -95,3 +95,9 @@ class SearchError(EchoMindBaseException):
     """Raised when semantic search indexing or vector retrieval fails."""
 
     pass
+
+
+class AssistantError(EchoMindBaseException):
+    """Raised when AI Meeting Assistant execution or RAG synthesis fails."""
+
+    pass

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.10.0] - 2026-07-22 (Phase 10: AI Meeting Assistant & Conversational RAG Engine)
+
+### Added
+- `modules/assistant/` — AI Meeting Assistant Conversational RAG package
+- `AssistantService` top-level orchestrator providing natural language Q&A over meeting knowledge
+- `ConversationMemory` thread-safe session manager with sliding window turn retention
+- `QueryParser` for intent and search entity filter extraction
+- `RetrievalService` querying Phase 9 `SearchService` with score threshold filtering
+- `ContextBuilder` formatting grounded `[Ref N]` context blocks and `Citation` maps
+- `AssistantPromptBuilder` assembling system prompts, dialogue history, and context blocks
+- `ResponseGenerator` parsing completions and attaching structured source citations
+- 7 unit & integration tests in `tests/test_assistant.py`
+- Executable demonstration script `scripts/demo_assistant.py`
+- ADR-016: AI Meeting Assistant & Conversational RAG Engine
+
+### Changed
+- `app/container.py` — Exposed `assistant_service` wired with `QwenMLXProvider`
+- `core/llm/prompts/qa.py` — Refactored Q&A prompts with RAG grounding instructions and citation rules
+- `core/exceptions.py` — Added `AssistantError`
+
+---
+
 ## [0.9.0] - 2026-07-22 (Phase 9: Local Semantic Search & Knowledge Base)
 
 ### Added

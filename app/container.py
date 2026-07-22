@@ -16,6 +16,7 @@ from modules.storage.service import TranscriptService
 
 if TYPE_CHECKING:
     from core.vector.base import VectorStore
+    from modules.assistant.assistant_service import AssistantService
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
     from modules.meeting_intelligence.intelligence_service import IntelligenceService
@@ -54,6 +55,7 @@ class ApplicationContainer:
         self._embedding_service: EmbeddingService | None = None
         self._indexer: KnowledgeIndexer | None = None
         self._search_service: SearchService | None = None
+        self._assistant_service: AssistantService | None = None
         self._initialized: bool = False
 
     @property
@@ -209,6 +211,21 @@ class ApplicationContainer:
                 db_engine=self.db_engine,
             )
         return self._search_service
+
+    @property
+    def assistant_service(self) -> "AssistantService":
+        """Access AssistantService instance."""
+        if self._assistant_service is None:
+            from core.llm.mlx_provider import QwenMLXProvider
+            from modules.assistant.assistant_service import AssistantService
+            from modules.assistant.retrieval_service import RetrievalService
+
+            retrieval = RetrievalService(search_service=self.search_service)
+            self._assistant_service = AssistantService(
+                llm=QwenMLXProvider(),
+                retrieval_service=retrieval,
+            )
+        return self._assistant_service
 
     @property
     def speaker_registry(self) -> "SpeakerRegistry":

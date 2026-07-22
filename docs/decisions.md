@@ -169,5 +169,20 @@ This document records key architectural and technology choices made for the Echo
   4. **Anti-Hallucination Fallback**: If vector retrieval returns zero hits (or hits below confidence threshold), `AssistantService` immediately returns a factual fallback response without making an ungrounded LLM call.
 - **Consequences**: `assistant_service` is accessible via `ApplicationContainer`. Conversational turn memory is maintained in-memory per session.
 
+---
+
+## ADR 17: Desktop User Experience (Desktop UI & macOS Integration)
+
+- **Status**: Accepted
+- **Context**: EchoMind requires a polished macOS application interface to expose real-time audio capture, streaming speech recognition, transcript management, meeting summaries, RAG AI Chat, global search, preferences, document exports, and system tray integration.
+- **Decision**: Adopt MVVM (Model-View-ViewModel) architecture using PyQt6 for desktop UI components. Implement ViewModels (`DashboardVM`, `LibraryVM`, `TranscriptVM`, `SummaryVM`, `ChatVM`, `SearchVM`, `SettingsVM`, `ExportVM`) inheriting from `QObject` with reactive signals/slots. Implement `ExportService` for multi-format document generation (`.md`, `.json`, `.pdf`, `.docx`), `SettingsService` for persisting user preferences to disk, `MenuBarTrayApp` for native macOS menu bar status, and `NativeNotificationManager` for system alerts.
+- **Rationale**:
+  1. **Strict MVVM Separation**: Views interact only with ViewModels via Qt Signals/Slots, and ViewModels interact with underlying backend services. Views never query SQLite databases or execute AI models directly.
+  2. **Asynchronous Execution**: Heavy background tasks (LLM summarization, RAG Q&A generation, vector search, document export) run asynchronously on background worker threads, keeping the GUI thread responsive at 60 FPS.
+  3. **Native macOS HIG Aesthetics**: Theme styling tokens in `ui/desktop/theme.py` adhere to macOS Human Interface Guidelines, supporting both Dark and Light visual themes.
+  4. **Multi-Format Export**: `ExportService` gathers complete meeting model graphs from repositories and renders formatted Markdown, JSON, PDF (via ReportLab), and DOCX (via python-docx) reports.
+- **Consequences**: `settings_service` and `export_service` are accessible via `ApplicationContainer`. `MainWindow` shell renders all tabs and tray integration.
+
+
 
 

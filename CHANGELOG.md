@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.11.0] - 2026-07-22 (Phase 11: Desktop User Experience & macOS Integration)
+
+### Added
+- `ui/desktop/` — Desktop UI application package built on PyQt6 following MVVM architecture
+- `MainWindow` container shell featuring side navigation drawer and view stack
+- `DashboardView` & `DashboardViewModel` displaying meeting statistics and recent meetings
+- `LibraryView` & `LibraryViewModel` rendering searchable meeting grid with delete capabilities
+- `TranscriptView` & `TranscriptViewModel` supporting real-time streaming transcript updates
+- `SummaryView` & `SummaryViewModel` rendering executive summaries, action items, and decisions
+- `ChatView` & `ChatViewModel` driving AI RAG Chat interface with citation popover previews
+- `SearchView` & `SearchViewModel` providing global semantic vector search interface
+- `SettingsView` & `SettingsViewModel` managing Audio, AI Models, Search, Appearance, and Privacy preferences
+- `ExportDialog` & `ExportViewModel` allowing meeting document exports
+- `modules/export/` — Multi-format document export engine (`ExportService`, `MarkdownFormatter`, `JSONFormatter`, `PDFFormatter`, `DOCXFormatter`)
+- `core/settings_service.py` — `SettingsService` for persisting user preferences to disk
+- `ui/desktop/macos/` — Native macOS system integration (`MenuBarTrayApp` system tray icon + `NativeNotificationManager`)
+- 8 unit test suites in `tests/test_settings_service.py`, `tests/test_export_service.py`, `tests/test_viewmodels.py`, `tests/test_macos_integration.py`
+- Executable demonstration script `scripts/demo_desktop_ui.py`
+- ADR-017: Desktop User Experience (Desktop UI & macOS Integration)
+
+### Changed
+- `app/container.py` — Exposed `settings_service` and `export_service`
+- `pyproject.toml` — Added `PyQt6`, `python-docx`, `reportlab` dependencies and `echomind` CLI entry
+
+---
+
 ## [0.10.0] - 2026-07-22 (Phase 10: AI Meeting Assistant & Conversational RAG Engine)
 
 ### Added

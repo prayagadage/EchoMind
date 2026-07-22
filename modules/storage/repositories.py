@@ -91,6 +91,40 @@ class MeetingRepository:
             session.flush()
         return meeting
 
+    @staticmethod
+    def get_recent(session: Session, limit: int = 50) -> list[MeetingModel]:
+        """Retrieve recent meetings ordered by started_at descending.
+
+        Args:
+            session: Active SQLAlchemy database session.
+            limit: Maximum records count.
+
+        Returns:
+            list[MeetingModel]: List of recent meeting entities.
+        """
+        stmt = (
+            select(MeetingModel).order_by(MeetingModel.started_at.desc()).limit(limit)
+        )
+        return list(session.scalars(stmt).all())
+
+    @staticmethod
+    def delete(session: Session, meeting_id: str) -> bool:
+        """Delete a meeting entity by ID.
+
+        Args:
+            session: Active database session.
+            meeting_id: Target meeting UUID string.
+
+        Returns:
+            bool: True if deleted successfully.
+        """
+        meeting = MeetingRepository.get_by_id(session, meeting_id)
+        if meeting:
+            session.delete(meeting)
+            session.flush()
+            return True
+        return False
+
 
 class TranscriptRepository:
     """Repository managing Transcript persistence and search operations."""

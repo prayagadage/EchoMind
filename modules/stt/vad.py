@@ -13,7 +13,7 @@ class VoiceActivityDetector:
 
     def __init__(
         self,
-        energy_threshold: float = 0.008,
+        energy_threshold: float = 0.002,
         min_speech_duration_sec: float = 0.3,
     ) -> None:
         """Initialize Voice Activity Detector.

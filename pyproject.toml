@@ -24,7 +24,13 @@ dependencies = [
     "mlx-whisper>=0.2.0",
     "mlx-lm>=0.19.0",
     "sqlalchemy>=2.0.0",
+    "PyQt6>=6.6.0",
+    "python-docx>=1.1.0",
+    "reportlab>=4.1.0",
 ]
+
+[project.scripts]
+echomind = "ui.cli:run_cli"
 
 [project.optional-dependencies]
 dev = [

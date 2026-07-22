@@ -47,6 +47,18 @@ class MeetingModel(Base):
         order_by="TranscriptModel.sequence_number",
     )
 
+    @property
+    def created_at(self) -> datetime:
+        """Alias property for started_at timestamp."""
+        return self.started_at
+
+    @property
+    def duration(self) -> float:
+        """Calculate duration in seconds."""
+        if self.ended_at and self.started_at:
+            return (self.ended_at - self.started_at).total_seconds()
+        return 0.0
+
     def __repr__(self) -> str:
         return (
             f"<MeetingModel(id='{self.id}', title='{self.title}', "

@@ -15,8 +15,10 @@ from modules.storage.db import DatabaseEngine
 from modules.storage.service import TranscriptService
 
 if TYPE_CHECKING:
+    from core.settings_service import SettingsService
     from core.vector.base import VectorStore
     from modules.assistant.assistant_service import AssistantService
+    from modules.export.export_service import ExportService
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
     from modules.meeting_intelligence.intelligence_service import IntelligenceService
@@ -56,6 +58,8 @@ class ApplicationContainer:
         self._indexer: KnowledgeIndexer | None = None
         self._search_service: SearchService | None = None
         self._assistant_service: AssistantService | None = None
+        self._settings_service: SettingsService | None = None
+        self._export_service: ExportService | None = None
         self._initialized: bool = False
 
     @property
@@ -226,6 +230,24 @@ class ApplicationContainer:
                 retrieval_service=retrieval,
             )
         return self._assistant_service
+
+    @property
+    def settings_service(self) -> "SettingsService":
+        """Access SettingsService instance."""
+        if self._settings_service is None:
+            from core.settings_service import SettingsService
+
+            self._settings_service = SettingsService()
+        return self._settings_service
+
+    @property
+    def export_service(self) -> "ExportService":
+        """Access ExportService instance."""
+        if self._export_service is None:
+            from modules.export.export_service import ExportService
+
+            self._export_service = ExportService(db_engine=self.db_engine)
+        return self._export_service
 
     @property
     def speaker_registry(self) -> "SpeakerRegistry":

@@ -81,15 +81,10 @@ class MLXWhisperEngine:
             if target_lang and target_lang.lower() != "auto":
                 kwargs["language"] = target_lang.lower()
 
-            # Execute MLX Whisper STT with Marathi/Hindi/English initial prompt
-            initial_prompt = (
-                "Marathi, Hindi, English meeting conversation. "
-                "मराठी, हिंदी, आणि इंग्रजी संभाषण."
-            )
+            # Execute MLX Whisper STT
             result = mlx_whisper.transcribe(
                 data,
                 path_or_hf_repo=self._model_name,
-                initial_prompt=initial_prompt,
                 verbose=False,
                 **kwargs,
             )
@@ -126,6 +121,7 @@ class MLXWhisperEngine:
 
         # 1. Repeated digits/punctuation (e.g., "1,2,3,4,5,5,5,5,5,5,5...")
         import re
+        from collections import Counter
 
         if re.match(r"^[\d\s,.-]+$", clean) and len(clean) > 8:
             return True
@@ -150,12 +146,20 @@ class MLXWhisperEngine:
         if any(p in lowered for p in phrases):
             return True
 
-        # 4. Prompt repetition on silence (e.g., "Marathi, Hindi, English meeting...")
-        if (
-            lowered.count("marathi") > 2
-            or lowered.count("hindi") > 2
-            or lowered.count("english meeting") > 2
-        ):
+        # 4. Repeated consecutive word patterns (e.g. "siebie siebie", "आणि आणि")
+        if re.search(r"(\b\w+\b)(?:\s*[,.]?\s*\1){2,}", clean, re.IGNORECASE):
+            return True
+
+        # 5. High frequency single word dominance (e.g. word > 35% of tokens)
+        tokens = re.findall(r"\w+", clean)
+        if len(tokens) >= 4:
+            counts = Counter(tokens)
+            _, highest_freq = counts.most_common(1)[0]
+            if highest_freq >= 3 and (highest_freq / len(tokens)) > 0.35:
+                return True
+
+        # 6. Repetitive Devanagari/Latin zero symbols (e.g. ००००००००००)
+        if re.search(r"[०0]{4,}", clean):
             return True
 
         return False

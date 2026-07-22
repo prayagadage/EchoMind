@@ -92,9 +92,27 @@ class MLXWhisperEngine:
             text = str(result.get("text", "")).strip()
             detected_lang = str(result.get("language", self._fallback_language))
 
+            # Reject segments where Whisper itself reports high no-speech probability
+            # or extreme compression ratio (hallucination on silence/noise)
+            segments = result.get("segments", [])
+            if segments:
+                avg_no_speech = sum(s.get("no_speech_prob", 0) for s in segments) / len(
+                    segments
+                )
+                avg_compression = sum(
+                    s.get("compression_ratio", 1) for s in segments
+                ) / len(segments)
+                if avg_no_speech > 0.6 or avg_compression > 4.0:
+                    logger.debug(
+                        f"Filtered by Whisper metrics: "
+                        f"no_speech={avg_no_speech:.2f}, "
+                        f"compression={avg_compression:.2f}"
+                    )
+                    return "", detected_lang.lower(), 0.0
+
             # Filter out known Whisper hallucinations on quiet or noisy audio
             if self._is_hallucination(text):
-                logger.debug(f"Filtered Whisper hallucination: '{text}'")
+                logger.debug(f"Filtered Whisper hallucination: '{text[:80]}'")
                 return "", detected_lang.lower(), 0.0
 
             # Normalize language code (e.g. 'mr', 'hi', 'en')
@@ -118,11 +136,13 @@ class MLXWhisperEngine:
             return True
 
         clean = text.strip()
+        if len(clean) < 2:
+            return True
 
-        # 1. Repeated digits/punctuation (e.g., "1,2,3,4,5,5,5,5,5,5,5...")
         import re
         from collections import Counter
 
+        # 1. Repeated digits/punctuation (e.g., "1,2,3,4,5,5,5,5,5,5,5...")
         if re.match(r"^[\d\s,.-]+$", clean) and len(clean) > 8:
             return True
 
@@ -146,11 +166,11 @@ class MLXWhisperEngine:
         if any(p in lowered for p in phrases):
             return True
 
-        # 4. Repeated consecutive word patterns (e.g. "siebie siebie", "आणि आणि")
+        # 4. Repeated consecutive word patterns ("siebie siebie", "आणि आणि")
         if re.search(r"(\b\w+\b)(?:\s*[,.]?\s*\1){2,}", clean, re.IGNORECASE):
             return True
 
-        # 5. High frequency single word dominance (e.g. word > 35% of tokens)
+        # 5. High frequency single word dominance (word > 35% of tokens)
         tokens = re.findall(r"\w+", clean)
         if len(tokens) >= 4:
             counts = Counter(tokens)
@@ -158,8 +178,16 @@ class MLXWhisperEngine:
             if highest_freq >= 3 and (highest_freq / len(tokens)) > 0.35:
                 return True
 
-        # 6. Repetitive Devanagari/Latin zero symbols (e.g. ००००००००००)
-        if re.search(r"[०0]{4,}", clean):
+        # 6. Any single Unicode char repeated 4+ times in a row
+        # Catches "यीीीीीी", "औऔऔऔ", "०००००", "aaaa"
+        if re.search(r"(.)\1{3,}", clean):
             return True
+
+        # 7. Devanagari combining marks flooding (e.g., "़़़़़")
+        combining_marks = re.findall(r"[\u0900-\u097F]", clean)
+        if len(combining_marks) > 10:
+            unique_chars = set(combining_marks)
+            if len(unique_chars) <= 3:
+                return True
 
         return False

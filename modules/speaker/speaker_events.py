@@ -41,3 +41,26 @@ class SpeakerAssignedEvent:
     speaker_id: str
     temporary_name: str
     timestamp: float
+
+
+@dataclass(frozen=True)
+class SpeakerUpdatedEvent:
+    """Emitted when a speaker is renamed or assigned a new color code."""
+
+    speaker_id: str
+    meeting_id: str
+    temporary_name: str
+    display_name: str | None
+    color: str
+    timestamp: float
+
+
+@dataclass(frozen=True)
+class SpeakerMergedEvent:
+    """Emitted when one speaker is merged into another speaker."""
+
+    meeting_id: str
+    target_speaker_id: str
+    destination_speaker_id: str
+    affected_transcripts_count: int
+    timestamp: float

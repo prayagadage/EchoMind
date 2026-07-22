@@ -17,7 +17,11 @@ from modules.storage.service import TranscriptService
 if TYPE_CHECKING:
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
+    from modules.speaker.speaker_identity_service import SpeakerIdentityService
+    from modules.speaker.speaker_merge_service import SpeakerMergeService
+    from modules.speaker.speaker_registry import SpeakerRegistry
     from modules.speaker.speaker_service import SpeakerService
+    from modules.speaker.ui_adapter import SpeakerUIAdapter
     from modules.translation.service import TranslationService
 
 
@@ -116,6 +120,36 @@ class ApplicationContainer:
                 db_engine=self.db_engine,
             )
         return self._speaker_service
+
+    @property
+    def speaker_registry(self) -> "SpeakerRegistry":
+        """Access SpeakerRegistry instance."""
+        from modules.speaker.speaker_registry import SpeakerRegistry
+
+        return SpeakerRegistry()
+
+    @property
+    def speaker_identity_service(self) -> "SpeakerIdentityService":
+        """Access SpeakerIdentityService instance."""
+        from modules.speaker.speaker_identity_service import SpeakerIdentityService
+
+        return SpeakerIdentityService(
+            db_engine=self.db_engine, event_bus=self.event_bus
+        )
+
+    @property
+    def speaker_merge_service(self) -> "SpeakerMergeService":
+        """Access SpeakerMergeService instance."""
+        from modules.speaker.speaker_merge_service import SpeakerMergeService
+
+        return SpeakerMergeService(db_engine=self.db_engine, event_bus=self.event_bus)
+
+    @property
+    def speaker_ui_adapter(self) -> "SpeakerUIAdapter":
+        """Access SpeakerUIAdapter class/instance."""
+        from modules.speaker.ui_adapter import SpeakerUIAdapter
+
+        return SpeakerUIAdapter()
 
     @property
     def is_initialized(self) -> bool:

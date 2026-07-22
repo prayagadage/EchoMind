@@ -311,3 +311,93 @@ class SpeakerRepository:
         if speaker:
             speaker.last_seen = last_seen
             session.flush()
+
+    @staticmethod
+    def rename(
+        session: Session, speaker_id: str, display_name: str
+    ) -> SpeakerModel | None:
+        """Update display name for a speaker.
+
+        Args:
+            session: Active database session.
+            speaker_id: Target speaker UUID string.
+            display_name: New human-readable display name.
+
+        Returns:
+            SpeakerModel | None: Updated speaker entity or None.
+        """
+        speaker = session.scalar(
+            select(SpeakerModel).where(SpeakerModel.id == speaker_id)
+        )
+        if speaker:
+            speaker.display_name = display_name
+            session.flush()
+        return speaker
+
+    @staticmethod
+    def update_color(
+        session: Session, speaker_id: str, color: str
+    ) -> SpeakerModel | None:
+        """Update color code for a speaker.
+
+        Args:
+            session: Active database session.
+            speaker_id: Target speaker UUID string.
+            color: Hex color string (e.g. #4F46E5).
+
+        Returns:
+            SpeakerModel | None: Updated speaker entity or None.
+        """
+        speaker = session.scalar(
+            select(SpeakerModel).where(SpeakerModel.id == speaker_id)
+        )
+        if speaker:
+            speaker.color = color
+            session.flush()
+        return speaker
+
+    @staticmethod
+    def delete(session: Session, speaker_id: str) -> bool:
+        """Delete speaker record by ID.
+
+        Args:
+            session: Active database session.
+            speaker_id: Target speaker UUID string.
+
+        Returns:
+            bool: True if deleted, False if not found.
+        """
+        speaker = session.scalar(
+            select(SpeakerModel).where(SpeakerModel.id == speaker_id)
+        )
+        if speaker:
+            session.delete(speaker)
+            session.flush()
+            return True
+        return False
+
+    @staticmethod
+    def reassign_transcripts(
+        session: Session, target_speaker_id: str, destination_speaker_id: str
+    ) -> int:
+        """Atomically reassign all transcripts to destination speaker.
+
+        Args:
+            session: Active database session.
+            target_speaker_id: Speaker ID being merged away.
+            destination_speaker_id: Target speaker receiving transcripts.
+
+        Returns:
+            int: Number of updated transcript records.
+        """
+        from sqlalchemy import update
+
+        stmt = (
+            update(TranscriptModel)
+            .where(TranscriptModel.speaker_id == target_speaker_id)
+            .values(speaker_id=destination_speaker_id)
+        )
+        result = session.execute(stmt)
+        session.flush()
+        row_count = getattr(result, "rowcount", 0)
+        return int(row_count if row_count is not None else 0)

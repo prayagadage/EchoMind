@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.2] - 2026-07-22 (Phase 6B: Speaker Identity Management System)
+
+### Added
+- **Speaker Registry (`modules/speaker/speaker_registry.py`)**: `SpeakerRegistry` managing speaker entity creation, palette color assignment (`#4F46E5`, `#10B981`, `#F59E0B`, etc.), and lookups.
+- **Speaker Identity Service (`modules/speaker/speaker_identity_service.py`)**: `SpeakerIdentityService` handling user speaker renames (`Speaker A` -> `Rahul`), hex color code assignments, and publishing `SpeakerUpdatedEvent`.
+- **Speaker Merge Service (`modules/speaker/speaker_merge_service.py`)**: `SpeakerMergeService` executing atomic speaker merges (`Speaker C` -> `Rahul`), reassigning `TranscriptModel.speaker_id` foreign keys in SQLite, updating `last_seen`, and publishing `SpeakerMergedEvent`.
+- **Speaker Statistics & Timeline (`modules/speaker/speaker_statistics.py`)**: `SpeakerStatisticsCalculator` computing speaking time, turn count, average/longest turn duration, and generating `SpeakerTimelineSegment` models for UI visualization.
+- **Speaker UI Adapter (`modules/speaker/ui_adapter.py`)**: `SpeakerUIAdapter` projecting transcript records with dynamic speaker identity metadata (`effective_speaker_name`, `speaker_color`) without mutating historical transcript text records.
+- **Database Schema Extensions (`modules/storage/models.py` & `repositories.py`)**: Added `display_name` and `color` columns to `SpeakerModel` table and added `rename`, `update_color`, `delete`, and `reassign_transcripts` methods to `SpeakerRepository`.
+- **Unit Tests & Demo (`tests/test_speaker_identity.py` & `scripts/demo_speaker_identity.py`)**: Comprehensive test suite and interactive demonstration script.
+
 ## [0.6.1] - 2026-07-22 (Phase 6A: Streaming Speaker Segmentation System)
 
 ### Added

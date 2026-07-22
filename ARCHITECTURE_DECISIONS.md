@@ -52,6 +52,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: `SpeakerSegmenter` Acoustic Feature Vector Clustering + `SpeakerService` Event Worker
 - **Why**: Ultra-low memory (<15MB) and CPU (<3%) footprint on M2 Air without GPU contention, sub-50ms processing latency, and intra-meeting speaker continuity tracking.
 
+### [ADR-012: Speaker Identity Management, Foreign Key Indirection, and Safe Merging](docs/decisions.md#adr-12-speaker-identity-management-foreign-key-indirection-and-safe-merging)
+- **Choice**: `SpeakerRegistry` + `SpeakerIdentityService` + `SpeakerMergeService` + `SpeakerUIAdapter`
+- **Why**: Foreign key indirection (`transcripts.speaker_id`) allows dynamic speaker rename/recolor without modifying transcript text, enables atomic speaker merging, and prepares for future biometric voice recognition.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

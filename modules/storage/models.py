@@ -66,6 +66,8 @@ class SpeakerModel(Base):
         String(36), ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False
     )
     temporary_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    display_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    color: Mapped[str] = mapped_column(String(16), nullable=False, default="#4F46E5")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -80,6 +82,7 @@ class SpeakerModel(Base):
     __table_args__ = (
         Index("idx_speakers_meeting", "meeting_id"),
         Index("idx_speakers_temp_name", "temporary_name"),
+        Index("idx_speakers_display_name", "display_name"),
     )
 
     def __repr__(self) -> str:

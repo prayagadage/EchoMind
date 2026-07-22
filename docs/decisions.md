@@ -104,10 +104,13 @@ This document records key architectural and technology choices made for the Echo
 
 ---
 
-## ADR 11: Online Acoustic Feature Streaming Diarization for Apple Silicon
+## ADR 12: Speaker Identity Management, Foreign Key Indirection, and Safe Merging
 
 - **Status**: Accepted
-- **Context**: EchoMind requires real-time streaming speaker segmentation (<2.0s latency) on Apple Silicon (MacBook Air M2, 16 GB RAM) to assign temporary speaker IDs (`Speaker A`, `Speaker B`), maintain intra-meeting speaker continuity, update `TranscriptModel.speaker_id` records in SQLite, and publish `SpeakerEvents` without consuming GPU/ANE resources reserved for MLX Whisper.
-- **Decision**: Implement an **Online Acoustic Feature Streaming Diarization Strategy** (`SpeakerSegmenter`) using 16-dimensional acoustic feature vectors (RMS energy contours, zero-crossing rates, spectral centroids, Mel-frequency filterbank log energies) and cosine distance centroid clustering. Pair with an independent `SpeakerService` worker consuming `AudioChunk` and `TranscriptEvent` streams.
-- **Rationale**: Heavy deep neural diarization pipelines (pyannote) thrash Metal/ANE memory bandwidth when running alongside MLX Whisper on a 16GB M2 Air. Lightweight acoustic feature vector clustering uses **<15 MB RAM** and **<3% CPU load**, achieving **<50ms processing latency per chunk**.
-- **Consequences**: Real-time speaker boundaries and temporary speaker labels (`Speaker A`, `Speaker B`) are tracked seamlessly per meeting session and stored in the SQLite `speakers` table. Named individual identification across meetings is deferred to Phase 6B.
+- **Context**: EchoMind requires transforming anonymous detected speakers (`Speaker A`, `Speaker B`) into user-manageable identities (custom display names, color coding, speaker statistics, timeline visualization, and speaker merging) without modifying original immutable transcript records or introducing biometric voice enrollment prematurely.
+- **Decision**: Architect `SpeakerRegistry`, `SpeakerIdentityService`, `SpeakerMergeService`, `SpeakerStatisticsCalculator`, and `SpeakerUIAdapter` around **Foreign Key Indirection** (`transcripts.speaker_id -> speakers.id`).
+- **Rationale**:
+  1. **Foreign Key Indirection (`transcripts.speaker_id`)**: Storing `speaker_id` instead of hardcoding speaker name strings in `transcripts` guarantees that updating a speaker's `display_name` immediately updates every UI transcript view projection without mutating historical transcript text records.
+  2. **Safe Speaker Merging**: Merging `Speaker C` into `Speaker A` performs an atomic foreign key update (`UPDATE transcripts SET speaker_id = dest_id WHERE speaker_id = target_id`), merges `last_seen` timestamps, deletes the target speaker record, and publishes `SpeakerMergedEvent`.
+  3. **Preparation for Future Voice Recognition**: Storing persistent `speaker_id` foreign keys creates an ideal foundation for Phase 7 (Voice Profiles & Cross-Meeting Biometric Recognition). Future voice enrollment services can associate voice embeddings (`embedding_id`) directly to existing `speakers.id` entities without modifying transcript storage schemas.
+- **Consequences**: Downstream UI components consume `SpeakerTranscriptProjection` objects, and speaker statistics/timelines are generated dynamically on demand.

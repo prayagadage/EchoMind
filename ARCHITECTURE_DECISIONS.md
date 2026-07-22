@@ -40,6 +40,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: SQLAlchemy 2.0 + SQLite + Repository Pattern + EventBus Auto-Persistence
 - **Why**: Type-safe ORM entities, decoupled event-driven storage, full-text keyword search, and pre-designed schema extension columns.
 
+### [ADR-009: Independent Worker Architecture & Term-Preserving Translation](docs/decisions.md#adr-9-independent-worker-architecture--term-preserving-translation)
+- **Choice**: `TranslationService` Worker + `TranslationEvent` + Technical Term Guard + `TranslationRepository`
+- **Why**: Fan-out event architecture, non-destructive original transcript storage, term preservation, and support for future target languages.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

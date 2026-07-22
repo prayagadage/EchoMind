@@ -91,3 +91,44 @@ class TranscriptModel(Base):
             f"<TranscriptModel(id='{self.id}', meeting_id='{self.meeting_id}', "
             f"seq={self.sequence_number}, lang='{self.language}', text='{snippet}')>"
         )
+
+
+class TranslationModel(Base):
+    """SQLAlchemy model representing a translated transcript segment."""
+
+    __tablename__ = "translations"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    transcript_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("transcripts.id", ondelete="CASCADE"), nullable=False
+    )
+    target_language: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="en"
+    )
+    translated_text: Mapped[str] = mapped_column(Text, nullable=False)
+    model_name: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="nmt-local"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+
+    # Relationship to transcript
+    transcript: Mapped["TranscriptModel"] = relationship("TranscriptModel")
+
+    __table_args__ = (
+        Index("idx_translations_transcript", "transcript_id"),
+        Index("idx_translations_target_lang", "target_language"),
+    )
+
+    def __repr__(self) -> str:
+        snippet = self.translated_text[:20]
+        return (
+            f"<TranslationModel(id='{self.id}', "
+            f"transcript_id='{self.transcript_id}', "
+            f"target_lang='{self.target_language}', text='{snippet}')>"
+        )

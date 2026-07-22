@@ -81,3 +81,13 @@ This document records key architectural and technology choices made for the Echo
 - **Decision**: Adopt SQLAlchemy 2.0 ORM with SQLite (`data/db/echomind.db`), Repository Pattern (`MeetingRepository`, `TranscriptRepository`), and `TranscriptService` EventBus auto-persistence.
 - **Rationale**: SQLAlchemy 2.0 provides type-safe ORM mappings and session management. SQLite WAL mode ensures fast local reads and writes. The Repository Pattern encapsulates SQL queries, while `TranscriptService` subscribes to `TranscriptEvent` on the `EventBus`, keeping STT modules 100% database-agnostic. Schema columns for translation, speaker diarization, and embeddings are pre-designed for future phases.
 - **Consequences**: Local SQLite file is maintained at `data/db/echomind.db`.
+
+---
+
+## ADR 9: Independent Worker Architecture & Term-Preserving Translation
+
+- **Status**: Accepted
+- **Context**: EchoMind requires automatic, offline translation of Marathi (`mr`) and Hindi (`hi`) transcripts into English while leaving original transcripts untouched, preserving technical terms ("Python", "SQL", "API", "Prayag", "EchoMind"), and adhering to an decoupled independent event worker design.
+- **Decision**: Architect `TranslationService` as an independent worker consuming `TranscriptEvent`s, translating via `TranslationEngine`, publishing `TranslationEvent` payloads, and storing translations in a separate `TranslationModel` table via `TranslationRepository`.
+- **Rationale**: Decoupling workers around events enables parallel processing (Translation, Keyword Detection, Diarization) without tight coupling or sequential pipelines. Technical term preservation prevents corruption of code terms and proper names. Storing translations in a dedicated `translations` table guarantees original transcript immutability.
+- **Consequences**: Downstream UI and Summary subscribers consume `TranslationEvent` payloads asynchronously over the `EventBus`.

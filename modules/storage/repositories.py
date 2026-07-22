@@ -5,7 +5,12 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from modules.storage.models import MeetingModel, MeetingStatus, TranscriptModel
+from modules.storage.models import (
+    MeetingModel,
+    MeetingStatus,
+    TranscriptModel,
+    TranslationModel,
+)
 
 
 class MeetingRepository:
@@ -144,3 +149,40 @@ class TranscriptRepository:
             stmt = stmt.where(TranscriptModel.meeting_id == meeting_id)
         stmt = stmt.order_by(TranscriptModel.timestamp)
         return list(session.scalars(stmt).all())
+
+
+class TranslationRepository:
+    """Repository managing Translation persistence and retrieval operations."""
+
+    @staticmethod
+    def create(session: Session, translation: TranslationModel) -> TranslationModel:
+        """Persist a new translation record.
+
+        Args:
+            session: Active SQLAlchemy database session.
+            translation: TranslationModel instance to save.
+
+        Returns:
+            TranslationModel: Saved translation entity.
+        """
+        session.add(translation)
+        session.flush()
+        return translation
+
+    @staticmethod
+    def get_by_transcript_id(
+        session: Session, transcript_id: str
+    ) -> TranslationModel | None:
+        """Retrieve translation record for a specific transcript ID.
+
+        Args:
+            session: Active SQLAlchemy database session.
+            transcript_id: Target transcript UUID string.
+
+        Returns:
+            Optional[TranslationModel]: Translation entity or None.
+        """
+        stmt = select(TranslationModel).where(
+            TranslationModel.transcript_id == transcript_id
+        )
+        return session.scalar(stmt)

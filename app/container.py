@@ -4,6 +4,8 @@ Manages application initialization, settings wiring, logger setup, database life
 and component lifecycle hooks without relying on global state.
 """
 
+from typing import TYPE_CHECKING
+
 from core.config import Settings, get_settings
 from core.event_bus import EventBus
 from core.exceptions import InitializationError
@@ -11,6 +13,9 @@ from core.logger import setup_logger
 from loguru import logger
 from modules.storage.db import DatabaseEngine
 from modules.storage.service import TranscriptService
+
+if TYPE_CHECKING:
+    from modules.translation.service import TranslationService
 
 
 class ApplicationContainer:
@@ -58,6 +63,18 @@ class ApplicationContainer:
                 event_bus=self.event_bus,
             )
         return self._transcript_service
+
+    @property
+    def translation_service(self) -> "TranslationService":
+        """Access TranslationService instance."""
+        if getattr(self, "_translation_service", None) is None:
+            from modules.translation.service import TranslationService
+
+            self._translation_service = TranslationService(
+                event_bus=self.event_bus,
+                db_engine=self.db_engine,
+            )
+        return self._translation_service
 
     @property
     def is_initialized(self) -> bool:

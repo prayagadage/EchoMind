@@ -59,16 +59,22 @@ EchoMind is a local-first, offline AI meeting assistant engineered specifically 
 |                                 |                                        |
 |                                 v (TranscriptEvent)                      |
 |  +------------------------------+-------------------------------------+  |
-|  |             STORAGE & PERSISTENCE SUBSYSTEM (Phase 3)              |  |
+|  |               INDEPENDENT WORKER EVENT ROUTER                      |  |
 |  |                                                                    |  |
-|  |  +----------------------+      +--------------------------------+  |  |
-|  |  |  TranscriptService   | ---> |  Meeting & Transcript Repos    |  |  |
-|  |  +----------+-----------+      +---------------+----------------+  |  |
-|  |             |                                  |                   |  |
-|  |             v                                  v                   |  |
-|  |  +----------+-----------+      +---------------+----------------+  |  |
-|  |  |  Meeting Context     | ---> |  SQLAlchemy 2.0 / SQLite DB    |  |  |
-|  |  +----------------------+      +--------------------------------+  |  |
+|  |                        TranscriptEvent                             |  |
+|  |                               │                                    |  |
+|  |        ┌──────────────────────┼──────────────────────┐             |  |
+|  |        ▼                      ▼                      ▼             |  |
+|  | Translation Worker      Keyword Detector      Future Diarization    |  |
+|  | (modules/translation)      (Phase 5)               (Phase 6)       |  |
+|  |        │                                                           |  |
+|  |        ▼                                                           |  |
+|  | TranslationEvent                                                   |  |
+|  |        │                                                           |  |
+|  | ┌──────┼──────────────────────┐                                    |  |
+|  | ▼      ▼                      ▼                                    |  |
+|  | UI  Summary Engine        Database                                 |  |
+|  |      (Phase 6)      (TranslationRepository)                       |  |
 |  +--------------------------------------------------------------------+  |
 +------------------------------------+-------------------------------------+
                                      |

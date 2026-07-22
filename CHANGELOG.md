@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-07-22 (Phase 4: Local Translation Engine & Independent Event Worker System)
+
+### Added
+- **Independent Translation Worker**: Built `TranslationService` (`modules/translation/service.py`) listening to `TranscriptEvent`s on `EventBus`, translating Marathi and Hindi into English, emitting `TranslationEvent`s, and storing translations in SQLite.
+- **Translation Event Payload**: Created immutable `TranslationEvent` data model (`modules/translation/translation_event.py`) for decoupled downstream UI and summary subscribers.
+- **Neural Translation & Term Guard**: Implemented `TranslationEngine` (`modules/translation/engine.py`) for local translation with automatic preservation of technical terms, code snippets, APIs, model names, and author names ("Prayag", "EchoMind", "Python", "SQL").
+- **Database Schema & Repository**: Added `TranslationModel` ORM entity (`modules/storage/models.py`) and `TranslationRepository` (`modules/storage/repositories.py`) for separate, non-destructive translation persistence.
+- **Application Container Wiring**: Updated `ApplicationContainer` (`app/container.py`) to expose `translation_service`.
+- **Demonstration & Test Suite**: Added `scripts/demo_translation.py` and comprehensive unit test suite (`tests/test_translation.py`).
+
+---
+
 ## [0.4.0] - 2026-07-22 (Phase 3: Persistent Memory & Storage System)
 
 ### Added

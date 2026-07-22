@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from modules.storage.models import (
+    AlertModel,
     MeetingModel,
     MeetingStatus,
     TranscriptModel,
@@ -186,3 +187,40 @@ class TranslationRepository:
             TranslationModel.transcript_id == transcript_id
         )
         return session.scalar(stmt)
+
+
+class AlertRepository:
+    """Repository managing Alert event persistence and retrieval operations."""
+
+    @staticmethod
+    def create(session: Session, alert: AlertModel) -> AlertModel:
+        """Persist a new alert event record.
+
+        Args:
+            session: Active SQLAlchemy database session.
+            alert: AlertModel instance to save.
+
+        Returns:
+            AlertModel: Saved alert entity.
+        """
+        session.add(alert)
+        session.flush()
+        return alert
+
+    @staticmethod
+    def get_by_meeting(session: Session, meeting_id: str) -> list[AlertModel]:
+        """Retrieve all alert records for a target meeting session.
+
+        Args:
+            session: Active SQLAlchemy database session.
+            meeting_id: Target meeting UUID string.
+
+        Returns:
+            list[AlertModel]: Matching alert records.
+        """
+        stmt = (
+            select(AlertModel)
+            .where(AlertModel.meeting_id == meeting_id)
+            .order_by(AlertModel.created_at)
+        )
+        return list(session.scalars(stmt).all())

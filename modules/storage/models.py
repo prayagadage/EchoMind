@@ -132,3 +132,39 @@ class TranslationModel(Base):
             f"transcript_id='{self.transcript_id}', "
             f"target_lang='{self.target_language}', text='{snippet}')>"
         )
+
+
+class AlertModel(Base):
+    """SQLAlchemy model representing a triggered intelligence alert event."""
+
+    __tablename__ = "alerts"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    meeting_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False
+    )
+    transcript_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("transcripts.id", ondelete="SET NULL"), nullable=True
+    )
+    rule_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    trigger_keyword: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(32), nullable=False, default="MEDIUM")
+    matched_text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+
+    __table_args__ = (
+        Index("idx_alerts_meeting", "meeting_id"),
+        Index("idx_alerts_severity", "severity"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<AlertModel(id='{self.id}', rule='{self.rule_name}', "
+            f"keyword='{self.trigger_keyword}', severity='{self.severity}')>"
+        )

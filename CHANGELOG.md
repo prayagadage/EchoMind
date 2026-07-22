@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-07-22 (Phase 5: Real-Time Intelligence & Alert System)
+
+### Added
+- **Multilingual KeywordMatcher (`modules/intelligence/keyword_matcher.py`)**: Script-aware keyword and pattern matcher supporting "Prayag", "प्रायग", "प्रयाग", "Deadline", "Urgent", and "Production".
+- **Extensible RuleEngine (`modules/intelligence/rule_engine.py`)**: Rule engine evaluating incoming transcripts against configurable `Rule` objects with severities (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+- **macOS NotificationService (`modules/intelligence/notification_service.py`)**: Native desktop notification banners via `osascript` and system alert sound chimes (`afplay` / `Glass.aiff`).
+- **AlertManager Event Worker (`modules/intelligence/alert_manager.py`)**: Independent worker subscribing to `TranscriptEvent` and `TranslationEvent`, publishing `AlertEvent`, and orchestrating notifications + DB persistence.
+- **Alert Persistence (`modules/storage/models.py` & `repositories.py`)**: `AlertModel` ORM entity and `AlertRepository` for SQLite alert history persistence.
+- **Unit Tests & Demo (`tests/test_intelligence.py` & `scripts/demo_alerts.py`)**: Comprehensive test suite and live interactive demonstration script.
+
 ## [0.5.0] - 2026-07-22 (Phase 4: Local Translation Engine & Independent Event Worker System)
 
 ### Added

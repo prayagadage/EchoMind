@@ -15,6 +15,8 @@ from modules.storage.db import DatabaseEngine
 from modules.storage.service import TranscriptService
 
 if TYPE_CHECKING:
+    from modules.intelligence.alert_manager import AlertManager
+    from modules.intelligence.notification_service import NotificationService
     from modules.translation.service import TranslationService
 
 
@@ -31,6 +33,9 @@ class ApplicationContainer:
         self._event_bus: EventBus | None = None
         self._db_engine: DatabaseEngine | None = None
         self._transcript_service: TranscriptService | None = None
+        self._translation_service: TranslationService | None = None
+        self._notification_service: NotificationService | None = None
+        self._alert_manager: AlertManager | None = None
         self._initialized: bool = False
 
     @property
@@ -67,7 +72,7 @@ class ApplicationContainer:
     @property
     def translation_service(self) -> "TranslationService":
         """Access TranslationService instance."""
-        if getattr(self, "_translation_service", None) is None:
+        if self._translation_service is None:
             from modules.translation.service import TranslationService
 
             self._translation_service = TranslationService(
@@ -75,6 +80,28 @@ class ApplicationContainer:
                 db_engine=self.db_engine,
             )
         return self._translation_service
+
+    @property
+    def notification_service(self) -> "NotificationService":
+        """Access NotificationService instance."""
+        if self._notification_service is None:
+            from modules.intelligence.notification_service import NotificationService
+
+            self._notification_service = NotificationService()
+        return self._notification_service
+
+    @property
+    def alert_manager(self) -> "AlertManager":
+        """Access AlertManager instance."""
+        if self._alert_manager is None:
+            from modules.intelligence.alert_manager import AlertManager
+
+            self._alert_manager = AlertManager(
+                event_bus=self.event_bus,
+                notification_service=self.notification_service,
+                db_engine=self.db_engine,
+            )
+        return self._alert_manager
 
     @property
     def is_initialized(self) -> bool:

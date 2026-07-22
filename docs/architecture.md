@@ -65,16 +65,16 @@ EchoMind is a local-first, offline AI meeting assistant engineered specifically 
 |  |                               │                                    |  |
 |  |        ┌──────────────────────┼──────────────────────┐             |  |
 |  |        ▼                      ▼                      ▼             |  |
-|  | Translation Worker      Keyword Detector      Future Diarization    |  |
-|  | (modules/translation)      (Phase 5)               (Phase 6)       |  |
-|  |        │                                                           |  |
-|  |        ▼                                                           |  |
-|  | TranslationEvent                                                   |  |
-|  |        │                                                           |  |
-|  | ┌──────┼──────────────────────┐                                    |  |
-|  | ▼      ▼                      ▼                                    |  |
-|  | UI  Summary Engine        Database                                 |  |
-|  |      (Phase 6)      (TranslationRepository)                       |  |
+|  | Translation Worker    AlertManager Worker    Future Diarization    |  |
+|  | (modules/translation) (modules/intelligence)      (Phase 6)       |  |
+|  |        │                      │                                    |  |
+|  |        ▼                      v                                    |  |
+|  | TranslationEvent         AlertEvent                                |  |
+|  |        │                      │                                    |  |
+|  | ┌──────┼───────────┐   ┌──────┼──────────────────────┐             |  |
+|  | ▼      ▼           ▼   ▼      ▼                      ▼             |  |
+|  | UI  Summary     Database macOS Banner        System Sound          |  |
+|  |     Engine    (AlertModel) (NotificationService) (afplay/Glass)    |  |
 |  +--------------------------------------------------------------------+  |
 +------------------------------------+-------------------------------------+
                                      |

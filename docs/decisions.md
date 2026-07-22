@@ -91,3 +91,13 @@ This document records key architectural and technology choices made for the Echo
 - **Decision**: Architect `TranslationService` as an independent worker consuming `TranscriptEvent`s, translating via `TranslationEngine`, publishing `TranslationEvent` payloads, and storing translations in a separate `TranslationModel` table via `TranslationRepository`.
 - **Rationale**: Decoupling workers around events enables parallel processing (Translation, Keyword Detection, Diarization) without tight coupling or sequential pipelines. Technical term preservation prevents corruption of code terms and proper names. Storing translations in a dedicated `translations` table guarantees original transcript immutability.
 - **Consequences**: Downstream UI and Summary subscribers consume `TranslationEvent` payloads asynchronously over the `EventBus`.
+
+---
+
+## ADR 10: Real-Time Intelligence Rule Engine & macOS Notification Service
+
+- **Status**: Accepted
+- **Context**: EchoMind requires real-time detection of configurable triggers ("Prayag", "प्रयाग", "Deadline", "Urgent", "Production") from transcript streams, desktop banner alerts, audio chimes, and persistent alert event recording without altering speech or translation pipelines.
+- **Decision**: Implement `RuleEngine` with extensible `Rule` definitions, multilingual script-aware `KeywordMatcher`, `NotificationService` (macOS `osascript` banners + system sound chimes), and `AlertManager` worker publishing `AlertEvent`s and persisting `AlertModel` records via `AlertRepository`.
+- **Rationale**: The `RuleEngine` provides an extensible abstraction supporting future rule types (Action Items, Deadlines, AI Semantic Detectors). Multilingual matching supports Devnagari and Latin script variants. Non-blocking `NotificationService` ensures desktop notifications and audio alert chimes never block continuous audio capture or speech recognition worker threads.
+- **Consequences**: Native macOS notifications display banners via AppleScript, and `alerts` entries are recorded in SQLite.

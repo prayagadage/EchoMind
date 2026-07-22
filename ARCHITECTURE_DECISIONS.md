@@ -44,6 +44,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: `TranslationService` Worker + `TranslationEvent` + Technical Term Guard + `TranslationRepository`
 - **Why**: Fan-out event architecture, non-destructive original transcript storage, term preservation, and support for future target languages.
 
+### [ADR-010: Real-Time Intelligence Rule Engine & macOS Notification Service](docs/decisions.md#adr-10-real-time-intelligence-rule-engine--macos-notification-service)
+- **Choice**: `RuleEngine` + `NotificationService` (macOS UserNotifications)
+- **Why**: Real-time business logic execution, low-latency UI feedback, and native OS-level interaction for critical alerts.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

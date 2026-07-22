@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from modules.intelligence.alert_manager import AlertManager
     from modules.intelligence.notification_service import NotificationService
     from modules.meeting_intelligence.intelligence_service import IntelligenceService
+    from modules.recording.service import RecordingService
     from modules.search.embedding_service import EmbeddingService
     from modules.search.indexer import KnowledgeIndexer
     from modules.search.search_service import SearchService
@@ -60,6 +61,7 @@ class ApplicationContainer:
         self._assistant_service: AssistantService | None = None
         self._settings_service: SettingsService | None = None
         self._export_service: ExportService | None = None
+        self._recording_service: RecordingService | None = None
         self._initialized: bool = False
 
     @property
@@ -248,6 +250,15 @@ class ApplicationContainer:
 
             self._export_service = ExportService(db_engine=self.db_engine)
         return self._export_service
+
+    @property
+    def recording_service(self) -> "RecordingService":
+        """Access RecordingService instance."""
+        if self._recording_service is None:
+            from modules.recording.service import RecordingService
+
+            self._recording_service = RecordingService(container=self)
+        return self._recording_service
 
     @property
     def speaker_registry(self) -> "SpeakerRegistry":

@@ -1,6 +1,7 @@
-"""MainWindow container shell providing side navigation drawer and view stack."""
+"""MainWindow container shell with sidebar navigation and recording controls."""
 
 from app.container import ApplicationContainer
+from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -61,7 +62,17 @@ class MainWindow(QMainWindow):
         self._menu_bar_tray = MenuBarTrayApp(self)
         self._menu_bar_tray.show()
 
+        # Recording timer
+        self._timer = QTimer(self)
+        self._timer.setInterval(1000)
+        self._timer.timeout.connect(self._update_recording_timer)
+
         self._init_ui()
+
+        # Connect live transcript listener to transcript viewmodel
+        self._container.recording_service.add_transcript_listener(
+            self._transcript_vm.handle_live_transcript_event
+        )
 
     def _init_ui(self) -> None:
         central_widget = QWidget()
@@ -78,9 +89,18 @@ class MainWindow(QMainWindow):
 
         brand_lbl = QLabel("🧠 EchoMind")
         brand_lbl.setStyleSheet(
-            "font-size: 18px; font-weight: bold; color: #4F46E5; margin-bottom: 12px;"
+            "font-size: 18px; font-weight: bold; color: #4F46E5; margin-bottom: 8px;"
         )
         s_layout.addWidget(brand_lbl)
+
+        # Start / Stop Recording Control Button
+        self._record_btn = QPushButton("🎙️ Start Recording")
+        self._record_btn.setStyleSheet(
+            "background-color: #4F46E5; color: white; font-weight: bold; "
+            "padding: 10px; border-radius: 8px; font-size: 13px;"
+        )
+        self._record_btn.clicked.connect(self._toggle_recording)
+        s_layout.addWidget(self._record_btn)
 
         self._nav_list = QListWidget()
         self._nav_list.addItem("Dashboard")
@@ -104,7 +124,9 @@ class MainWindow(QMainWindow):
         # Main Content Stack
         self._stack = QStackedWidget()
 
-        self._dashboard_view = DashboardView(self._dashboard_vm)
+        self._dashboard_view = DashboardView(
+            self._dashboard_vm, start_record_callback=self._toggle_recording
+        )
         self._library_view = LibraryView(self._library_vm)
         self._transcript_view = TranscriptView(self._transcript_vm)
         self._summary_view = SummaryView(self._summary_vm)
@@ -125,6 +147,47 @@ class MainWindow(QMainWindow):
         # Connect library selection to transcript & summary views
         self._library_view.meeting_selected.connect(self._on_meeting_selected)
 
+    def _toggle_recording(self) -> None:
+        rec_service = self._container.recording_service
+        if not rec_service.is_recording:
+            meeting_id = rec_service.start_recording()
+            self._transcript_vm.set_meeting(meeting_id)
+            self._summary_vm.set_meeting(meeting_id)
+            self._menu_bar_tray.set_recording_status(True)
+            self._record_btn.setStyleSheet(
+                "background-color: #EF4444; color: white; font-weight: bold; "
+                "padding: 10px; border-radius: 8px; font-size: 13px;"
+            )
+            self._timer.start()
+            self._update_recording_timer()
+            # Switch view to Transcript Viewer
+            self._nav_list.setCurrentRow(2)
+        else:
+            self._timer.stop()
+            completed_id = rec_service.stop_recording()
+            self._menu_bar_tray.set_recording_status(False)
+            self._record_btn.setText("🎙️ Start Recording")
+            self._record_btn.setStyleSheet(
+                "background-color: #4F46E5; color: white; font-weight: bold; "
+                "padding: 10px; border-radius: 8px; font-size: 13px;"
+            )
+            # Refresh dashboard and library
+            self._dashboard_vm.refresh()
+            self._library_vm.load_meetings()
+            if completed_id:
+                self._transcript_vm.set_meeting(completed_id)
+                self._summary_vm.set_meeting(completed_id)
+
+    def _update_recording_timer(self) -> None:
+        rec_service = self._container.recording_service
+        if rec_service.is_recording:
+            secs = int(rec_service.elapsed_seconds)
+            mins = secs // 60
+            secs = secs % 60
+            self._record_btn.setText(f"🔴 Recording ({mins:02d}:{secs:02d})")
+            self._dashboard_vm.stats["active_recordings"] = 1
+            self._dashboard_view._on_stats_updated(self._dashboard_vm.stats)
+
     def _on_nav_changed(self, index: int) -> None:
         if 0 <= index < self._stack.count():
             self._stack.setCurrentIndex(index)
@@ -132,7 +195,6 @@ class MainWindow(QMainWindow):
     def _on_meeting_selected(self, meeting_id: str) -> None:
         self._transcript_vm.set_meeting(meeting_id)
         self._summary_vm.set_meeting(meeting_id)
-        # Navigate to Transcript Viewer tab
         self._nav_list.setCurrentRow(2)
 
     def _on_export_clicked(self) -> None:

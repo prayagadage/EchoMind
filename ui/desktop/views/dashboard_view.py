@@ -1,4 +1,6 @@
-"""Dashboard View displaying meeting stats and recent meeting cards."""
+"""Dashboard View displaying meeting stats and recording action button."""
+
+from collections.abc import Callable
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -16,14 +18,20 @@ from ui.desktop.viewmodels.dashboard_viewmodel import DashboardViewModel
 class DashboardView(QWidget):
     """View rendering recent meetings overview and statistics."""
 
-    def __init__(self, viewModel: DashboardViewModel) -> None:
+    def __init__(
+        self,
+        viewModel: DashboardViewModel,
+        start_record_callback: Callable[[], None] | None = None,
+    ) -> None:
         """Initialize DashboardView.
 
         Args:
             viewModel: DashboardViewModel instance.
+            start_record_callback: Callback to trigger recording start.
         """
         super().__init__()
         self._vm = viewModel
+        self._start_record_cb = start_record_callback
         self._init_ui()
         self._vm.stats_updated.connect(self._on_stats_updated)
         self._vm.recent_meetings_updated.connect(self._on_recent_meetings_updated)
@@ -32,12 +40,22 @@ class DashboardView(QWidget):
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
 
-        # Header Title
+        # Header Title & Start Recording Action Button
+        header_layout = QHBoxLayout()
         title_label = QLabel("Dashboard")
-        title_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold; margin-bottom: 12px;"
-        )
-        layout.addWidget(title_label)
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        header_layout.addWidget(title_label)
+
+        if self._start_record_cb:
+            start_btn = QPushButton("🎙️ Start Meeting Recording")
+            start_btn.setStyleSheet(
+                "background-color: #4F46E5; color: white; font-weight: bold; "
+                "padding: 8px 16px; border-radius: 6px;"
+            )
+            start_btn.clicked.connect(self._start_record_cb)
+            header_layout.addWidget(start_btn, alignment=Qt.AlignmentFlag.AlignRight)
+
+        layout.addLayout(header_layout)
 
         # Stats Cards Row
         stats_layout = QHBoxLayout()

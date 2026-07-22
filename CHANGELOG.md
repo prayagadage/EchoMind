@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-07-22 (Phase 3: Persistent Memory & Storage System)
+
+### Added
+- **SQLAlchemy 2.0 ORM Mappings**: Implemented `MeetingModel` and `TranscriptModel` (`modules/storage/models.py`) with pre-designed schema extension columns (`translated_text`, `speaker_label`, `embedding_id`).
+- **Database Engine**: Created `DatabaseEngine` (`modules/storage/db.py`) managing SQLite connections (`data/db/echomind.db`), WAL mode, session scoping, and automatic table creation.
+- **Repository Pattern**: Implemented `MeetingRepository` and `TranscriptRepository` (`modules/storage/repositories.py`) for decoupled CRUD and keyword search operations.
+- **Transcript Service**: Built `TranscriptService` (`modules/storage/service.py`) managing meeting lifecycles (`start_meeting`, `end_meeting`), retrieving meeting histories, and subscribing to `TranscriptEvent` on `EventBus` for auto-persistence.
+- **Application Container Wiring**: Updated `ApplicationContainer` (`app/container.py`) to manage `DatabaseEngine` and `TranscriptService` lifespans.
+- **Demonstration & Tests**: Created `scripts/demo_storage.py` and comprehensive unit test suite (`tests/test_storage.py`).
+
+---
+
 ## [0.3.0] - 2026-07-22 (Phase 2: Real-Time Multilingual Speech Recognition)
 
 ### Added

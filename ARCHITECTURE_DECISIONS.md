@@ -36,6 +36,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: `mlx-whisper` + `VoiceActivityDetector` + `TranscriptEvent`
 - **Why**: Apple Silicon Metal/ANE hardware acceleration, automatic Marathi/Hindi/English detection, silence filtering, and decoupled event streaming.
 
+### [ADR-008: Persistent Storage via SQLAlchemy 2.0 ORM, SQLite, and Repository Pattern](docs/decisions.md#adr-8-persistent-storage-via-sqlalchemy-20-orm-sqlite-and-repository-pattern)
+- **Choice**: SQLAlchemy 2.0 + SQLite + Repository Pattern + EventBus Auto-Persistence
+- **Why**: Type-safe ORM entities, decoupled event-driven storage, full-text keyword search, and pre-designed schema extension columns.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

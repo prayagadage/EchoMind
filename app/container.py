@@ -1,13 +1,16 @@
 """Application container and service locator for EchoMind.
 
-Manages application initialization, settings wiring, logger setup,
+Manages application initialization, settings wiring, logger setup, database lifespan,
 and component lifecycle hooks without relying on global state.
 """
 
 from core.config import Settings, get_settings
+from core.event_bus import EventBus
 from core.exceptions import InitializationError
 from core.logger import setup_logger
 from loguru import logger
+from modules.storage.db import DatabaseEngine
+from modules.storage.service import TranscriptService
 
 
 class ApplicationContainer:
@@ -20,6 +23,9 @@ class ApplicationContainer:
             settings: Optional explicit Settings instance (useful for test overrides).
         """
         self._settings: Settings | None = settings
+        self._event_bus: EventBus | None = None
+        self._db_engine: DatabaseEngine | None = None
+        self._transcript_service: TranscriptService | None = None
         self._initialized: bool = False
 
     @property
@@ -30,12 +36,36 @@ class ApplicationContainer:
         return self._settings
 
     @property
+    def event_bus(self) -> EventBus:
+        """Access global EventBus instance."""
+        if self._event_bus is None:
+            self._event_bus = EventBus()
+        return self._event_bus
+
+    @property
+    def db_engine(self) -> DatabaseEngine:
+        """Access DatabaseEngine instance."""
+        if self._db_engine is None:
+            self._db_engine = DatabaseEngine()
+        return self._db_engine
+
+    @property
+    def transcript_service(self) -> TranscriptService:
+        """Access TranscriptService instance."""
+        if self._transcript_service is None:
+            self._transcript_service = TranscriptService(
+                db_engine=self.db_engine,
+                event_bus=self.event_bus,
+            )
+        return self._transcript_service
+
+    @property
     def is_initialized(self) -> bool:
         """Check if application lifespan container is initialized."""
         return self._initialized
 
     def initialize(self) -> None:
-        """Bootstrap system infrastructure, logging, and health diagnostics.
+        """Bootstrap system infrastructure, logging, database, and health diagnostics.
 
         Raises:
             InitializationError: If setup fails.
@@ -58,6 +88,9 @@ class ApplicationContainer:
 
             # 3. Perform hardware & runtime platform health checks
             self._verify_platform_environment()
+
+            # 4. Initialize Database & TranscriptService
+            self.transcript_service.db_engine.init_db()
 
             self._initialized = True
             logger.info("ApplicationContainer initialization complete.")
@@ -90,5 +123,12 @@ class ApplicationContainer:
             return
 
         logger.info("Shutting down ApplicationContainer services...")
+
+        if self._event_bus is not None:
+            self._event_bus.shutdown()
+
+        if self._db_engine is not None:
+            self._db_engine.close()
+
         self._initialized = False
         logger.info("ApplicationContainer shutdown complete.")

@@ -71,3 +71,13 @@ This document records key architectural and technology choices made for the Echo
 - **Decision**: Integrate `mlx-whisper` for local inference and `VoiceActivityDetector` (Silero VAD thresholds) for active speech segmentation.
 - **Rationale**: `mlx-whisper` is native to Apple Silicon MLX framework, utilizing Metal and ANE for low-power, high-throughput inference. Voice Activity Detection filters silent chunks before invoking Whisper, conserving battery and GPU compute. Decoupled `TranscriptEvent`s are published onto the `EventBus` for presentation and future Phase 3 translation subscribers.
 - **Consequences**: Whisper models run on local GPU/ANE; no cloud API calls or external service calls are made.
+
+---
+
+## ADR 8: Persistent Storage via SQLAlchemy 2.0 ORM, SQLite, and Repository Pattern
+
+- **Status**: Accepted
+- **Context**: EchoMind requires a robust, local persistent memory system to record meeting sessions and transcript segments, support full-text keyword searches, and allow decoupled auto-persistence without speech code directly coupling to database drivers.
+- **Decision**: Adopt SQLAlchemy 2.0 ORM with SQLite (`data/db/echomind.db`), Repository Pattern (`MeetingRepository`, `TranscriptRepository`), and `TranscriptService` EventBus auto-persistence.
+- **Rationale**: SQLAlchemy 2.0 provides type-safe ORM mappings and session management. SQLite WAL mode ensures fast local reads and writes. The Repository Pattern encapsulates SQL queries, while `TranscriptService` subscribes to `TranscriptEvent` on the `EventBus`, keeping STT modules 100% database-agnostic. Schema columns for translation, speaker diarization, and embeddings are pre-designed for future phases.
+- **Consequences**: Local SQLite file is maintained at `data/db/echomind.db`.

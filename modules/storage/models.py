@@ -1,0 +1,93 @@
+"""SQLAlchemy 2.0 ORM database models for Meeting and Transcript entities."""
+
+import uuid
+from datetime import UTC, datetime
+from enum import StrEnum
+
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from modules.storage.db import Base
+
+
+class MeetingStatus(StrEnum):
+    """Meeting lifecycle status enumeration."""
+
+    IN_PROGRESS = "IN_PROGRESS"
+    ENDED = "ENDED"
+
+
+class MeetingModel(Base):
+    """SQLAlchemy model representing a meeting session."""
+
+    __tablename__ = "meetings"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default=MeetingStatus.IN_PROGRESS.value
+    )
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # Relationship to transcript records
+    transcripts: Mapped[list["TranscriptModel"]] = relationship(
+        "TranscriptModel",
+        back_populates="meeting",
+        cascade="all, delete-orphan",
+        order_by="TranscriptModel.sequence_number",
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<MeetingModel(id='{self.id}', title='{self.title}', "
+            f"status='{self.status}')>"
+        )
+
+
+class TranscriptModel(Base):
+    """SQLAlchemy model representing a transcribed speech segment."""
+
+    __tablename__ = "transcripts"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    meeting_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False
+    )
+    sequence_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    timestamp: Mapped[float] = mapped_column(Float, nullable=False)
+    language: Mapped[str] = mapped_column(String(16), nullable=False)
+    original_text: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
+
+    # Extension columns for future phase compatibility
+    translated_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    speaker_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    embedding_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Back-reference relationship
+    meeting: Mapped["MeetingModel"] = relationship(
+        "MeetingModel", back_populates="transcripts"
+    )
+
+    __table_args__ = (
+        Index("idx_transcripts_meeting_seq", "meeting_id", "sequence_number"),
+        Index("idx_transcripts_language", "language"),
+    )
+
+    def __repr__(self) -> str:
+        snippet = self.original_text[:20]
+        return (
+            f"<TranscriptModel(id='{self.id}', meeting_id='{self.meeting_id}', "
+            f"seq={self.sequence_number}, lang='{self.language}', text='{snippet}')>"
+        )

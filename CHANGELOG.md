@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-07-22 (Phase 1: Local Audio Capture Engine)
+
+### Added
+- **Event Bus Engine**: Implemented generic, thread-safe `EventBus` (`core/event_bus.py`) supporting asynchronous Publish/Subscribe decoupling of audio producers and ML consumers.
+- **Audio Models**: Added `AudioChunk` (encapsulated NumPy float32 array, timestamp, sample rate, channels, RMS calculation) and `AudioDeviceInfo` dataclasses (`modules/audio/models.py`).
+- **In-Memory Ring Buffer**: Implemented pre-allocated `AudioBuffer` circular ring buffer (`modules/audio/buffer.py`) storing configurable recent $N$ seconds of audio in memory without disk persistence.
+- **Hardware Device Manager**: Implemented `AudioDeviceManager` (`modules/audio/device.py`) for CoreAudio microphone discovery, device selection, and error handling.
+- **Audio Engine State Machine**: Implemented `AudioEngine` (`modules/audio/engine.py`) for continuous `sounddevice` microphone capture with `START`, `PAUSE`, `RESUME`, and `STOP` states.
+- **Demonstration Script**: Created `scripts/demo_audio.py` for live interactive testing of audio streaming, RMS level visualization, and pause/resume transitions.
+- **Unit Tests**: Added comprehensive test suite (`tests/test_audio.py`) verifying buffer wrap-around, event bus dispatching, device queries, and state machine controls.
+
+---
+
 ## [0.1.0] - 2026-07-22 (Phase 0: Software Foundation Skeleton)
 
 ### Added

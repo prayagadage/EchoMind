@@ -1,4 +1,19 @@
-"""Audio stream capture module (Phase 1).
+"""Audio Engine Package for EchoMind.
 
-Responsible for local microphone input and macOS loopback system audio capture.
+Provides low-latency continuous microphone capture, in-memory ring buffering,
+device discovery, and decoupled event streaming.
 """
+
+from modules.audio.buffer import AudioBuffer
+from modules.audio.device import AudioDeviceManager
+from modules.audio.engine import AudioEngine, EngineState
+from modules.audio.models import AudioChunk, AudioDeviceInfo
+
+__all__ = [
+    "AudioEngine",
+    "EngineState",
+    "AudioDeviceManager",
+    "AudioBuffer",
+    "AudioChunk",
+    "AudioDeviceInfo",
+]

@@ -49,6 +49,18 @@ class AudioDeviceError(EchoMindBaseException):
     pass
 
 
+class AudioEngineError(EchoMindBaseException):
+    """Raised when AudioEngine lifecycle state machine or stream encounters an error."""
+
+    pass
+
+
+class AudioBufferOverflowError(EchoMindBaseException):
+    """Raised when AudioBuffer exceeds capacity without overwrite permission."""
+
+    pass
+
+
 class STTInferenceError(EchoMindBaseException):
     """Raised when local speech-to-text inference engine fails."""
 

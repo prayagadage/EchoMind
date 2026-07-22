@@ -28,6 +28,10 @@ This document captures the key architectural decisions and technology selections
 - **Choice**: 4-Layer Separation (`core/`, `modules/`, `app/`, `ui/`)
 - **Why**: Strict separation of concerns (SOLID), high cohesion, low coupling, and zero circular dependencies.
 
+### [ADR-006: Local Audio Capture via `sounddevice` and In-Memory Ring Buffer](docs/decisions.md#adr-6-local-audio-capture-via-sounddevice-and-in-memory-ring-buffer)
+- **Choice**: `sounddevice` + NumPy Ring Buffer + `EventBus`
+- **Why**: Low-latency CoreAudio callbacks (<10 ms), zero WAV disk writes, and decoupled subscriber streaming for future ML modules.
+
 ---
 
 For full details, context, and consequences for each ADR, refer to [docs/decisions.md](docs/decisions.md).

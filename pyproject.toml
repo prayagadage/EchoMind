@@ -19,6 +19,8 @@ dependencies = [
     "pydantic>=2.7.0",
     "pydantic-settings>=2.2.0",
     "loguru>=0.7.2",
+    "sounddevice>=0.4.6",
+    "numpy>=1.26.0",
 ]
 
 [project.optional-dependencies]
@@ -71,7 +73,7 @@ select = [
 ignore = []
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -86,6 +88,10 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "sounddevice.*"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"

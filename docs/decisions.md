@@ -51,3 +51,13 @@ This document records key architectural and technology choices made for the Echo
 - **Decision**: Organize into `core/`, `modules/`, `app/`, and `ui/` top-level layers following Dependency Inversion Principles.
 - **Rationale**: High cohesion and low coupling ensure domain modules can be tested in isolation and ML engines upgraded without breaking presentation or infrastructure code.
 - **Consequences**: Code must strictly respect layer boundaries (`core` cannot import from `app` or `modules`).
+
+---
+
+## ADR 6: Local Audio Capture via `sounddevice` and In-Memory Ring Buffer
+
+- **Status**: Accepted
+- **Context**: EchoMind requires continuous, low-latency microphone audio streaming without saving audio recordings to WAV or writing audio files to disk (privacy and disk I/O constraints).
+- **Decision**: Use `sounddevice` for PortAudio C-level callbacks, pre-allocated NumPy `float32` circular ring buffers (`AudioBuffer`), and a decoupled `EventBus`.
+- **Rationale**: CoreAudio integration via `sounddevice` delivers frame latency below 10 ms. In-memory pre-allocated NumPy arrays eliminate garbage collection pauses and file system persistence. The `EventBus` ensures downstream ML models (Whisper, Keyword Scanner) subscribe asynchronously without coupling to the audio engine.
+- **Consequences**: Microphone audio must be accessed via subscriber events or ring buffer slices; no disk WAV files exist.

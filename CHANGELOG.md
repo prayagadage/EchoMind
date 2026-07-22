@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2026-07-22 (Phase 8: Meeting Summarization Engine)
+
+### Added
+- `core/llm/prompts/` — Dedicated Prompt Engineering Layer (`summarization`, `meeting_intelligence`, `translation`, `qa`)
+- `modules/summary/` — Meeting Summarization Engine package
+- `SummaryBuilder` aggregating meeting metadata, speakers, transcripts, and Phase 7 structured intelligence
+- `SummaryService` supporting live (incremental) and final summary generation workflows as well as summary regeneration
+- `MeetingSummaryModel` ORM entity storing Executive Summary, Bullet Points, and Key Takeaways
+- `SummaryResponseSchema` Pydantic model for output validation
+- `SummaryRepository` for database CRUD, version updates, and non-final cleanup
+- `SummaryGeneratedEvent` published on EventBus
+- 10 new unit and integration tests in `tests/test_summary.py`
+- Executable demonstration script `scripts/demo_summary.py`
+- ADR-014: Prompt Engineering Layer & Meeting Summarization Engine
+
+### Changed
+- `app/container.py` — Exposed `summary_service` wired with `QwenMLXProvider`
+- `modules/meeting_intelligence/prompt_builder.py` — Refactored to import from `core.llm.prompts.meeting_intelligence`
+
+---
+
 ## [0.7.0] - 2026-07-22 (Phase 7: Meeting Intelligence Engine)
 
 ### Added

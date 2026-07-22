@@ -1,5 +1,12 @@
 """Prompt builder assembling transcript context into LLM prompts."""
 
+from core.llm.prompts.meeting_intelligence import (
+    INTELLIGENCE_SYSTEM_PROMPT as SYSTEM_PROMPT,
+)
+from core.llm.prompts.meeting_intelligence import (
+    build_intelligence_user_prompt,
+)
+
 from modules.storage.models import SpeakerModel, TranscriptModel
 
 # Valid item types for the JSON schema embedded in the prompt
@@ -11,32 +18,6 @@ VALID_TYPES = [
     "RISK",
     "FOLLOW_UP",
 ]
-
-SYSTEM_PROMPT = """You are a meeting intelligence extractor.
-Analyze the meeting transcript and extract structured items.
-
-Return ONLY valid JSON matching this schema:
-{
-  "items": [
-    {
-      "type": "<ACTION_ITEM|DECISION|DEADLINE|QUESTION|RISK|FOLLOW_UP>",
-      "content": "<clear description of the item>",
-      "assignee": "<person name or null>",
-      "due_date": "<ISO date or descriptive deadline or null>",
-      "priority": "<HIGH|MEDIUM|LOW or null>",
-      "confidence": <0.0-1.0>,
-      "source_text": "<exact transcript excerpt>"
-    }
-  ]
-}
-
-Rules:
-- Extract ALL action items, decisions, deadlines, questions, risks, and follow-ups.
-- Use exact speaker names when attributing assignees.
-- Set confidence based on how explicit the item is in the transcript.
-- For deadlines, capture the date/time mentioned.
-- If no items found, return {"items": []}.
-- Do NOT include commentary outside the JSON."""
 
 
 def build_extraction_prompt(
@@ -53,7 +34,7 @@ def build_extraction_prompt(
         Tuple of (system_prompt, user_prompt).
     """
     if not transcripts:
-        return SYSTEM_PROMPT, "No transcript content available."
+        return SYSTEM_PROMPT, build_intelligence_user_prompt([])
 
     speaker_map = speakers or {}
     lines: list[str] = []
@@ -65,7 +46,7 @@ def build_extraction_prompt(
         text = t.translated_text or t.original_text
         lines.append(f"[{ts}] {name} ({lang}): {text}")
 
-    user_prompt = "Meeting Transcript:\n\n" + "\n".join(lines)
+    user_prompt = build_intelligence_user_prompt(lines)
     return SYSTEM_PROMPT, user_prompt
 
 

@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from modules.speaker.speaker_registry import SpeakerRegistry
     from modules.speaker.speaker_service import SpeakerService
     from modules.speaker.ui_adapter import SpeakerUIAdapter
+    from modules.summary.summary_service import SummaryService
     from modules.translation.service import TranslationService
 
 
@@ -44,6 +45,7 @@ class ApplicationContainer:
         self._alert_manager: AlertManager | None = None
         self._speaker_service: SpeakerService | None = None
         self._intelligence_service: IntelligenceService | None = None
+        self._summary_service: SummaryService | None = None
         self._initialized: bool = False
 
     @property
@@ -138,6 +140,20 @@ class ApplicationContainer:
                 event_bus=self.event_bus,
             )
         return self._intelligence_service
+
+    @property
+    def summary_service(self) -> "SummaryService":
+        """Access SummaryService instance."""
+        if self._summary_service is None:
+            from core.llm.mlx_provider import QwenMLXProvider
+            from modules.summary.summary_service import SummaryService
+
+            self._summary_service = SummaryService(
+                llm=QwenMLXProvider(),
+                db_engine=self.db_engine,
+                event_bus=self.event_bus,
+            )
+        return self._summary_service
 
     @property
     def speaker_registry(self) -> "SpeakerRegistry":

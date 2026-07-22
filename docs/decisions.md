@@ -128,3 +128,17 @@ This document records key architectural and technology choices made for the Echo
   3. **Incremental + final**: Real-time extraction gives users immediate visibility into action items during a meeting. Final reconciliation with full context merges duplicates and refines quality.
   4. **Content hash dedup**: SHA-256 hash on `(item_type, content)` prevents duplicate persistence across incremental and final passes.
 - **Consequences**: `mlx-lm>=0.19.0` added as a dependency. `intelligence_items` table stores all extracted items with `is_final` flag distinguishing incremental from reconciled items.
+
+---
+
+## ADR 14: Prompt Engineering Layer & Meeting Summarization Engine
+
+- **Status**: Accepted
+- **Context**: EchoMind requires automated, offline meeting summarization generating Executive Summaries, Bullet Point Summaries, and Key Takeaways. To prevent hallucinations and ensure high summary density, prompt templates must be versioned cleanly and summaries anchored using pre-extracted structured meeting intelligence.
+- **Decision**: Architect a dedicated Prompt Engineering Layer (`core/llm/prompts/` with submodules for `summarization`, `meeting_intelligence`, `translation`, and `qa`). Implement `SummaryBuilder` to aggregate meeting metadata, speaker display names, chronological transcripts, and pre-extracted Phase 7 structured intelligence (Action Items, Decisions, Deadlines, Questions, Risks) into ground-truth context bundles. Build `SummaryService` supporting live (incremental/periodic) and final (reconciliation) summary passes, stored in `meeting_summaries` SQLite table.
+- **Rationale**:
+  1. **Prompt Engineering Layer (`core/llm/prompts/`)**: Isolating prompt strings from Python business logic ensures prompt templates are testable, versioned, and easily tuneable without risking domain code side effects.
+  2. **Ground-Truth Data Anchoring**: Feeding pre-extracted structured intelligence into the summary prompt ensures LLMs do not omit major commitments or hallucinate fake action items.
+  3. **Structured JSON Output**: Validating response payloads via Pydantic `SummaryResponseSchema` guarantees robust structural separation of Executive Summary, Bullet Points, and Key Takeaways.
+- **Consequences**: Summary records are stored in `meeting_summaries` table with model version tracking. `summary_service` is accessible via `ApplicationContainer`.
+
